@@ -24,9 +24,9 @@ enum
 {
 	kSSD1331PinMOSI		= GPIO_MAKE_PIN(HW_GPIOA, 8),
 	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
-	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
+	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOA, 2),
 	kSSD1331PinDC		= GPIO_MAKE_PIN(HW_GPIOA, 12),
-	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
+	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 3),
 };
 
 static int
@@ -64,7 +64,18 @@ writeCommand(uint8_t commandByte)
 	return status;
 }
 
-
+void
+devSSD1331clear()
+{
+	/*
+	 *	Clear Screen
+	 */
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+}
 
 int
 devSSD1331init(void)
@@ -77,7 +88,7 @@ devSSD1331init(void)
 	PORT_HAL_SetMuxMode(PORTA_BASE, 8u, kPortMuxAlt3);
 	PORT_HAL_SetMuxMode(PORTA_BASE, 9u, kPortMuxAlt3);
 
-	enableSPIpins();
+	warpEnableSPIpins();
 
 	/*
 	 *	Override Warp firmware's use of these pins.
@@ -146,23 +157,45 @@ devSSD1331init(void)
 	writeCommand(kSSD1331CommandFILL);
 	writeCommand(0x01);
 
+    	devSSD1331clear();
 	/*
 	 *	Clear Screen
 	 */
+	 
+	 /*
 	writeCommand(kSSD1331CommandCLEAR);
 	writeCommand(0x00);
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
-
+	*/
 
 
 	/*
 	 *	Any post-initialization drawing commands go here.
 	 */
 	//...
+	
+	
+	writeCommand(0x22);
 
+    //start x, y
+    	writeCommand(0);
+    	writeCommand(0);
 
+    // end x, y
+    	writeCommand(95);
+    	writeCommand(62);
 
+    // outline
+    	writeCommand(0);
+    	writeCommand(255);
+    	writeCommand(0);
+
+    // fill
+    	writeCommand(0);
+    	writeCommand(255);
+    	writeCommand(0);
+    
 	return 0;
 }

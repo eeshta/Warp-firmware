@@ -93,6 +93,11 @@
 	volatile WarpSPIDeviceState			deviceICE40State;
 #endif
 
+#if (WARP_BUILD_ENABLE_DEVSSD1331 || 1)
+	#include "devSSD1331.h"
+	volatile WarpSPIDeviceState			deviceSSD1331State;
+#endif
+
 #if (WARP_BUILD_ENABLE_DEVBMX055)
 	#include "devBMX055.h"
 	volatile WarpI2CDeviceState			deviceBMX055accelState;
@@ -206,13 +211,9 @@ uint8_t							gWarpSpiCommonSinkBuffer[kWarpMemoryCommonSpiBufferBytes];
 
 static void						sleepUntilReset(void);
 static void						lowPowerPinStates(void);
-
-#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT && !WARP_BUILD_ENABLE_FRDMKL03)
-	static void					disableTPS62740(void);
-	static void					enableTPS62740(uint16_t voltageMillivolts);
-	static void					setTPS62740CommonControlLines(uint16_t voltageMillivolts);
-#endif
-
+static void						disableTPS62740(void);
+static void						enableTPS62740(uint16_t voltageMillivolts);
+static void						setTPS62740CommonControlLines(uint16_t voltageMillivolts);
 static void						dumpProcessorState(void);
 static void						repeatRegisterReadForDeviceAndAddress(WarpSensorDevice warpSensorDevice, uint8_t baseAddress,
 								bool autoIncrement, int chunkReadsPerAddress, bool chatty,
@@ -828,45 +829,43 @@ warpDisableI2Cpins(void)
 #endif
 
 
-#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT && !WARP_BUILD_ENABLE_FRDMKL03)
 void
 disableTPS62740(void)
 {
+	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT)
 		GPIO_DRV_ClearPinOutput(kWarpPinTPS62740_REGCTRL);
+	#endif
 }
-#endif
 
-
-#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT && !WARP_BUILD_ENABLE_FRDMKL03)
 void
 enableTPS62740(uint16_t voltageMillivolts)
 {
-	/*
-	 *	By default, assusme pins are currently disabled (e.g., by a recent lowPowerPinStates())
-	 *
-	 *	Setup:
-	 *		PTB5/kWarpPinTPS62740_REGCTRL for GPIO
-	 *		PTB6/kWarpPinTPS62740_VSEL4 for GPIO
-	 *		PTB7/kWarpPinTPS62740_VSEL3 for GPIO
-	 *		PTB10/kWarpPinTPS62740_VSEL2 for GPIO
-	 *		PTB11/kWarpPinTPS62740_VSEL1 for GPIO
-	 */
-	PORT_HAL_SetMuxMode(PORTB_BASE, 5, kPortMuxAsGpio);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 6, kPortMuxAsGpio);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 7, kPortMuxAsGpio);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 10, kPortMuxAsGpio);
-	PORT_HAL_SetMuxMode(PORTB_BASE, 11, kPortMuxAsGpio);
+	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT)
+		/*
+		 *	By default, assusme pins are currently disabled (e.g., by a recent lowPowerPinStates())
+		 *
+		 *	Setup:
+		 *		PTB5/kWarpPinTPS62740_REGCTRL for GPIO
+		 *		PTB6/kWarpPinTPS62740_VSEL4 for GPIO
+		 *		PTB7/kWarpPinTPS62740_VSEL3 for GPIO
+		 *		PTB10/kWarpPinTPS62740_VSEL2 for GPIO
+		 *		PTB11/kWarpPinTPS62740_VSEL1 for GPIO
+		 */
+		PORT_HAL_SetMuxMode(PORTB_BASE, 5, kPortMuxAsGpio);
+		PORT_HAL_SetMuxMode(PORTB_BASE, 6, kPortMuxAsGpio);
+		PORT_HAL_SetMuxMode(PORTB_BASE, 7, kPortMuxAsGpio);
+		PORT_HAL_SetMuxMode(PORTB_BASE, 10, kPortMuxAsGpio);
+		PORT_HAL_SetMuxMode(PORTB_BASE, 11, kPortMuxAsGpio);
 
-	setTPS62740CommonControlLines(voltageMillivolts);
-	GPIO_DRV_SetPinOutput(kWarpPinTPS62740_REGCTRL);
+		setTPS62740CommonControlLines(voltageMillivolts);
+		GPIO_DRV_SetPinOutput(kWarpPinTPS62740_REGCTRL);
+	#endif
 }
-#endif
 
-
-#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT && !WARP_BUILD_ENABLE_FRDMKL03)
 void
 setTPS62740CommonControlLines(uint16_t voltageMillivolts)
 {
+	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT)
 		switch(voltageMillivolts)
 		{
 			case 1800:
@@ -1042,8 +1041,8 @@ setTPS62740CommonControlLines(uint16_t voltageMillivolts)
 		 *	Vload ramp time of the TPS62740 is 800us max (datasheet, Table 8.5 / page 6)
 		 */
 		OSA_TimeDelay(gWarpSupplySettlingDelayMilliseconds);
+	#endif
 }
-#endif
 
 
 
@@ -1055,7 +1054,7 @@ warpScaleSupplyVoltage(uint16_t voltageMillivolts)
 		return;
 	}
 
-	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT && !WARP_BUILD_ENABLE_FRDMKL03)
+	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT)
 		if (voltageMillivolts >= 1800 && voltageMillivolts <= 3300)
 		{
 			enableTPS62740(voltageMillivolts);
@@ -1073,7 +1072,7 @@ warpScaleSupplyVoltage(uint16_t voltageMillivolts)
 void
 warpDisableSupplyVoltage(void)
 {
-	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT && !WARP_BUILD_ENABLE_FRDMKL03)
+	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT)
 		disableTPS62740();
 
 		/*
@@ -1601,6 +1600,10 @@ main(void)
 		blinkLED(kGlauxPinLED);
 		blinkLED(kGlauxPinLED);
 		blinkLED(kGlauxPinLED);
+
+		USED(disableTPS62740);
+		USED(enableTPS62740);
+		USED(setTPS62740CommonControlLines);
 	#endif
 
 	/*
@@ -1613,7 +1616,7 @@ main(void)
 	#endif
 
 	#if (WARP_BUILD_ENABLE_DEVMMA8451Q)
-		initMMA8451Q(	0x1C	/* i2cAddress */,	kWarpDefaultSupplyVoltageMillivoltsMMA8451Q	);
+		initMMA8451Q(	0x1D	/* i2cAddress */,	kWarpDefaultSupplyVoltageMillivoltsMMA8451Q	);
 	#endif
 
 	#if (WARP_BUILD_ENABLE_DEVLPS25H)
@@ -1995,6 +1998,7 @@ main(void)
 		}
 	#endif
 
+
 	while (1)
 	{
 		/*
@@ -2002,7 +2006,11 @@ main(void)
 		 *	want to use menu to progressiveley change the machine state with various
 		 *	commands.
 		 */
+		 
+		devSSD1331init();
+		 
 		printBootSplash(gWarpCurrentSupplyVoltage, menuRegisterAddress, &powerManagerCallbackStructure);
+
 
 		warpPrint("\rSelect:\n");
 		warpPrint("\r- 'a': set default sensor.\n");
