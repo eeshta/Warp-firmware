@@ -1998,7 +1998,7 @@ main(void)
 		}
 	#endif
 
-
+	devSSD1331init();
 	while (1)
 	{
 		/*
@@ -2007,7 +2007,6 @@ main(void)
 		 *	commands.
 		 */
 		 
-		devSSD1331init();
 		 
 		printBootSplash(gWarpCurrentSupplyVoltage, menuRegisterAddress, &powerManagerCallbackStructure);
 
