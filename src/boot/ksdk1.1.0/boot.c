@@ -112,7 +112,7 @@
 
 #if (WARP_BUILD_ENABLE_DEVINA219)
 	#include "devINA219.h"
-	//volatile WarpI2CDeviceState			deviceINA219State;
+	volatile WarpI2CDeviceState			deviceINA219State;
 #endif
 
 #if (WARP_BUILD_ENABLE_DEVLPS25H)
@@ -1612,9 +1612,9 @@ main(void)
 	#endif
 
 	#if (WARP_BUILD_ENABLE_DEVINA219)
-		warpPrint("About to configure INA219...\n");
+		warpPrint("Connecting to INA219...\n");
 		if (!initINA219()){
-			warpPrint("Init Passed.\n");
+			warpPrint("Initalization Passed.\n");
 			warpPrint("Bus Voltage: %d mV\n", getBusVoltagemVINA219());
 			warpPrint("Shunt Voltage: %d uV\n", getShuntVoltageuVINA219());
 			OSA_TimeDelay(2000);
@@ -1627,7 +1627,7 @@ main(void)
 
 
 	#if (WARP_BUILD_ENABLE_DEVINA219)
-		get1000Currents();
+		getCurrentvalues();
 	#endif
 
 	/*

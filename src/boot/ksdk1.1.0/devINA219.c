@@ -108,11 +108,11 @@ uint32_t initINA219()
     // min theoretical current LSB with a calib reg of F000 is ~ 7uA per bit
 
     // The OLED is specced to draw a maximum of 25mA with a supply voltage of 5v, across the 0.1 Ohm shunt. max
-    // Select the Vbus full scale measurement range as 16V = VBUS_MAX
-    // Select the smallest PGA gain of 0.04 = VSHUNT_MAX
-    // Rshunt is equal to 0.1
-    // This gives a max possible measured current of 0.04/0.1 = 0.4 A
-    // The max expected current is around __0.05__ A
+    // Select the Vbus full scale measurement range as 16V = VBUS_MAX (NOT 32V)
+    // Select the smallest PGA gain of 0.04 = VSHUNT_MAX (this is 40mV - given in page 15 of INA219 datasheet)
+    // Rshunt = 0.1
+    // Max possible measured current of 0.04/0.1 = 0.4 A
+    // The max expected current is around __0.05__ A (choose twice of 25mA OLED current)
     // MinimumLSB = MaxExpected_I//32767 = 0.000_001_526 = 1.5uA
     // MaximumLSB = MaxExpected_I//4096 = 0.000_012_207 = 12uA
     // Choose the smallest nice one
@@ -250,7 +250,7 @@ int getPowermWINA219(void)
     return getPoweruWINA219() / 1000;
 }
 
-void get1000Currents(void){
+void getCurrentvalues(void){
     warpPrint("Current uA,Power uW,Shunt uV,Bus mV\n");
     for (int i = 0; i < 1000; i++){
         warpPrint("%d,%d,%d,%d\n", getCurrentuAINA219(), getPoweruWINA219(), getShuntVoltageuVINA219(), getBusVoltagemVINA219());
