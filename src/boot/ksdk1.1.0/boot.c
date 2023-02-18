@@ -110,6 +110,11 @@
 	volatile WarpI2CDeviceState			deviceMMA8451QState;
 #endif
 
+#if (WARP_BUILD_ENABLE_DEVINA219)
+	#include "devINA219.h"
+	//volatile WarpI2CDeviceState			deviceINA219State;
+#endif
+
 #if (WARP_BUILD_ENABLE_DEVLPS25H)
 	#include "devLPS25H.h"
 	volatile WarpI2CDeviceState			deviceLPS25HState;
@@ -1606,6 +1611,25 @@ main(void)
 		USED(setTPS62740CommonControlLines);
 	#endif
 
+	#if (WARP_BUILD_ENABLE_DEVINA219)
+		warpPrint("About to configure INA219...\n");
+		if (!initINA219()){
+			warpPrint("Init Passed.\n");
+			warpPrint("Bus Voltage: %d mV\n", getBusVoltagemVINA219());
+			warpPrint("Shunt Voltage: %d uV\n", getShuntVoltageuVINA219());
+			OSA_TimeDelay(2000);
+			warpPrint("Current: %d mA\n", getCurrentmAINA219());
+			warpPrint("Power: %d mW\n", getPowermWINA219());
+		}else{
+			warpPrint("Init Failed.\n");
+		}		
+	#endif
+
+
+	#if (WARP_BUILD_ENABLE_DEVINA219)
+		get1000Currents();
+	#endif
+
 	/*
 	 *	Initialize all the sensors
 	 */
@@ -1618,7 +1642,12 @@ main(void)
 	#if (WARP_BUILD_ENABLE_DEVMMA8451Q)
 		initMMA8451Q(	0x1D	/* i2cAddress */,	kWarpDefaultSupplyVoltageMillivoltsMMA8451Q	);
 	#endif
-
+	
+	//#if (WARP_BUILD_ENABLE_DEVINA219)
+		//initINA219(	0x40	/* i2cAddress */,	kWarpDefaultSupplyVoltageMillivoltsINA219	);
+	//#endif
+	
+	
 	#if (WARP_BUILD_ENABLE_DEVLPS25H)
 		initLPS25H(	0x5C	/* i2cAddress */,	kWarpDefaultSupplyVoltageMillivoltsLPS25H	);
 	#endif
