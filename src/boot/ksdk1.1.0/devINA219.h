@@ -11,7 +11,7 @@
 
 /** Prototypes **/
 uint32_t    readRegisterINA219(uint8_t deviceRegister, int numberOfBytes);
-uint32_t    writeRegisterINA218(uint8_t deviceRegister, uint16_t payload);
+uint32_t    writeRegisterINA219(uint8_t deviceRegister, uint16_t payload);
 uint32_t    initINA219(void);
 uint16_t    getBusVoltageRawINA219(void);
 uint16_t    getShuntVoltageRawINA219(void);
