@@ -1,14 +1,3 @@
-/*
-    Authored 2021-2022. Luis Bustillo
-
-    With contributions from:
-    - 'Full-Featured Pedometer Design Realized with 3-Axis Digital Accelerometer' -> Neil Zhao
-    - https://github.com/nerajbobra/embedded_pedometer
-    - 'Open-source algorithm for wearables in healthcare-applications' -> Anna Brondin & Marcus Nordstrom at Malmö University
-       https://github.com/Oxford-step-counter/C-Step-Counter
-    -  https://github.com/adamgoldney/Warp-Pedometer -> Adam Goldney
- */
-
 #include <stdlib.h>
 #include <math.h>
 
@@ -27,8 +16,6 @@
 #include "warp.h"
 
 #include "devMMA8451Q.h"
-#include "pedometer.h"
-#include "devSSD1331.h"
 
 #define BUFF_LENGTH             9
 #define STEP_BUFF_LENGTH        150             // Record steps for last 3s for mode selection
@@ -48,69 +35,12 @@ bool        step_buff[STEP_BUFF_LENGTH] =   {0};                                
 int8_t      n                           =   BUFF_LENGTH - 1;                    // Index of last number in buffer
 uint8_t steps_in_buffer                 =   0;                                  // Keep track of how many steps in buffer for mode selection
 
-volatile uint8_t	inBuffer[1];
-volatile uint8_t	payloadBytes[1];
-
-
-/*
- *	Override Warp firmware's use of these pins and define new aliases for our build.
- */
-enum
-{
-	kSSD1331PinMOSI		= GPIO_MAKE_PIN(HW_GPIOA, 8),
-	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
-	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 11),
-	kSSD1331PinDC		= GPIO_MAKE_PIN(HW_GPIOA, 12),
-	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
-};
-
-static int
-writeCommand(uint8_t commandByte)
-{
-	spi_status_t status;
-
-	/*
-	 *	Drive /CS low.
-	 *
-	 *	Make sure there is a high-to-low transition by first driving high, delay, then drive low.
-	 */
-	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
-	//OSA_TimeDelay(10);
-	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
-
-	/*
-	 *	Drive DC low (command).
-	 */
-	GPIO_DRV_ClearPinOutput(kSSD1331PinDC);
-
-	payloadBytes[0] = commandByte;
-	status = SPI_DRV_MasterTransferBlocking(0	/* master instance */,
-					NULL		/* spi_master_user_config_t */,
-					(const uint8_t * restrict)&payloadBytes[0],
-					(uint8_t * restrict)&inBuffer[0],
-					1		/* transfer size */,
-					1000		/* timeout in microseconds (unlike I2C which is ms) */);
-
-	/*
-	 *	Drive /CS high
-	 */
-	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
-
-	return status;
-}
 
 
 // Combine the stream from x,y,z by squaring, adding and square-rooting
 int16_t  combine_stream(int16_t x_data, int16_t y_data, int16_t z_data){
     
     int16_t comb_data = (int16_t)sqrt(x_data*x_data + y_data*y_data + z_data*z_data);
-    
-    //warpPrint(" %d,", x_data);
-    //warpPrint(" %d,", y_data);
-    //warpPrint(" %d,", z_data);
-    //warpPrint("\n");
-    //SEGGER_RTT_printf(0, "%d\n", comb_data);
-    
     
     return comb_data;
 }
@@ -139,52 +69,6 @@ void  diff(void){
     }
     // Store in derivative buffer
     deriv_buff[n] = moving_deriv;
-}
-
-// Calculate Stride length
-float calcStride(uint8_t height){
-    uint8_t steps_in_2s = 0;
-
-    steps_in_2s = steps_in_buffer/1.5;
-
-    if (steps_in_2s <= 2){
-        return height/5;
-    }
-    else if (steps_in_2s > 2 && steps_in_2s <= 3){
-        return height/4;
-    }
-    else if (steps_in_2s > 3 && steps_in_2s <= 4){
-        return height/3;
-    }
-    else if (steps_in_2s > 4 && steps_in_2s <= 5){
-        return height/2;
-    }
-    else if (steps_in_2s > 5 && steps_in_2s <= 6){
-        return height/1.2;
-    }
-    else if (steps_in_2s > 6 && steps_in_2s <= 8){
-        return height;
-    }
-    else if (steps_in_2s >= 8) {
-        return height*1.2;
-    }
-}
-
-// Calculate Total distance travelled
-uint32_t calcDistance(uint32_t distance){
-    float stride = 0;
-
-    stride = calcStride(HEIGHT)/100;
-    distance += round(stride*steps_in_buffer);
-    return distance;
-}
-
-// Calculate Current Speed
-uint16_t calcSpeed(void){
-    float stride = 0;
-
-    stride = calcStride(HEIGHT)/100;
-    return round((steps_in_buffer*stride)/3);
 }
 
 // Main function to count steps
@@ -304,6 +188,12 @@ uint32_t countCals(uint32_t cal_count, uint8_t height, uint8_t weight)
     return(cal_count);
 }
 
+uint16_t calcSpeed(void)
+{
+	float stride = 0;
+	return round((steps_in_buffer*stride)/3);  //AS ABOVE
+	
+}
 // Select mode based on steps
 uint8_t modeSelector(uint8_t mode, uint32_t last_step_time)
 {
@@ -323,245 +213,5 @@ uint8_t modeSelector(uint8_t mode, uint32_t last_step_time)
         return 1;
     }
 }
-
-/*
-UI and UX for OLED borrowed from Adam Goldney https://github.com/adamgoldney/Warp-Pedometer
-*/
-
-// Draw the background
-void displayBackground(uint8_t mode, uint8_t setting)
-{
-    uint32_t text_colour;
-    uint32_t line_colour;
-    
-    if(mode == REST)
-    {
-        text_colour = WHITE & DIM;      // Bitwise AND colour with DIM for dimmed colours
-        line_colour = CYAN & DIM;       // (only works for primary and secondary colours but will do for use here)
-    }
-    else
-    {
-        text_colour = WHITE;
-        line_colour = CYAN;
-    }
-    
-    // STEPS
-    writeCharacter(2, 63, 'S', text_colour);
-    writeCharacter(10, 63, 'T', text_colour);
-    writeCharacter(18, 63, 'E', text_colour);
-    writeCharacter(26, 63, 'P', text_colour);
-    writeCharacter(34, 63, 'S', text_colour);
-
-    if (setting == 1){
-
-        // CALS
-    writeCharacter(57, 63, 'C', text_colour);
-    writeCharacter(65, 63, 'A', text_colour);
-    writeCharacter(73, 63, 'L', text_colour);
-    writeCharacter(81, 63, 'S', text_colour);
-
-    }
-    else if (setting == 2){
-
-        // DIST
-    writeCharacter(57, 63, 'D', text_colour);
-    writeCharacter(65, 63, 'I', text_colour);
-    writeCharacter(73, 63, 'S', text_colour);
-    writeCharacter(81, 63, 'T', text_colour);
-
-    }
-
-    else if (setting == 3){ 
-
-        // SPEED
-    writeCharacter(55, 63, 'S', text_colour);
-    writeCharacter(63, 63, 'P', text_colour);
-    writeCharacter(71, 63, 'E', text_colour);
-    writeCharacter(79, 63, 'E', text_colour);
-    writeCharacter(87, 63, 'D', text_colour);
-
-    }
-    
-    // Draw Line
-    writeCommand(kSSD1331CommandDRAWLINE);
-    writeCommand(2);             // Col start
-    writeCommand(63-19);         // Row start
-    writeCommand(92);            // Col end
-    writeCommand(63-19);         // Row end
-    writeCommand((uint8_t)(line_colour >> 16) & 0xFF);          // Line red
-    writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
-    writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
-}
-
-// Draw the current mode
-void displayMode(uint8_t mode)
-{
-    
-    clearSection(20, 11, 76, 10);
-    
-    switch(mode)
-    {
-    case 0:
-    {
-    // ---
-    writeCharacter(36, 11, '-', WHITE & DIM);
-    writeCharacter(44, 11, '-', WHITE & DIM);
-    writeCharacter(52, 11, '-', WHITE & DIM);
-        
-    break;
-    }
-    
-    case 1:
-    {
-    // WALKING
-    writeCharacter(20, 11, 'W', WHITE);
-    writeCharacter(28, 11, 'A', WHITE);
-    writeCharacter(36, 11, 'L', WHITE);
-    writeCharacter(44, 11, 'K', WHITE);
-    writeCharacter(52, 11, 'I', WHITE);
-    writeCharacter(60, 11, 'N', WHITE);
-    writeCharacter(68, 11, 'G', WHITE);
-        
-    break;
-    }
-    
-    case 2:
-    {
-    // RUNNING
-    writeCharacter(20, 11, 'R', RED);
-    writeCharacter(28, 11, 'U', RED);
-    writeCharacter(36, 11, 'N', RED);
-    writeCharacter(44, 11, 'N', RED);
-    writeCharacter(52, 11, 'I', RED);
-    writeCharacter(60, 11, 'N', RED);
-    writeCharacter(68, 11, 'G', RED);
-    
-    break;
-    }
-    }
-}
-
-// Draw the various counts - keep centred with number of digits
-void drawCount(uint8_t column, uint8_t row, uint32_t count, uint32_t colour)
-{
-    
-    clearSection(column, row, 45, 10);
-    
-    if(count < 10)
-    {
-        writeDigit(column + 18, row, count, colour);
-    }
-    else if(count < 100)
-    {
-        writeDigit(column + 23, row, count % 10, colour);
-        writeDigit(column + 14, row, count / 10, colour);
-        
-    }
-    else if(count < 1000)
-    {
-        writeDigit(column + 28, row, count % 10, colour);
-        writeDigit(column + 19, row, (count / 10) %  10, colour);
-        writeDigit(column + 10, row, count / 100, colour);
-    }
-    else if(count < 10000)
-    {
-        writeDigit(column + 32, row, count % 10, colour);
-        writeDigit(column + 23, row, count / 10 % 10, colour);
-        writeDigit(column + 14, row, count / 100 % 10, colour);
-        writeDigit(column + 5, row, count / 1000, colour);
-    }
-    else if(count < 100000)
-    {
-        writeDigit(column + 37, row, count % 10, colour);
-        writeDigit(column + 28, row, count / 10 % 10, colour);
-        writeDigit(column + 19, row, count / 100 % 10, colour);
-        writeDigit(column + 10, row, count / 1000 % 10, colour);
-        writeDigit(column + 1, row, count / 10000, colour);
-    }
-    else
-    {
-    SEGGER_RTT_WriteString(0, "\nERROR: Count Overflow");
-    }
-    
-}
-
-// Draw step count using drawCount
-void drawSteps(uint8_t step_count, uint8_t mode)
-{
-    uint32_t colour;
-    
-    if(step_count >= STEP_THRESHOLD)
-    {
-        colour = GREEN;
-    }
-    else{
-        colour = WHITE;
-    }
-    
-    if(mode == REST)
-    {
-        colour = colour & DIM;
-    }
-    
-    drawCount(0, 42, step_count, colour);
-}
-
-void drawDist(uint32_t distance, uint8_t mode)
-{
-    uint32_t colour;
-    
-    if(distance >= DIST_THRESHOLD)
-    {
-        colour = GREEN;
-    }
-    else{
-        colour = WHITE;
-    }
-    
-    if(mode == REST)
-    {
-        colour = colour & DIM;
-    }
-    
-    drawCount(51, 42, distance, colour);
-}
-
-void drawSpeed(uint32_t speed, uint8_t mode)
-{
-    uint32_t colour = WHITE;
-    
-    if(mode == REST)
-    {
-        colour = colour & DIM;
-    }
-    
-    drawCount(51, 42, speed, colour);
-}
-
-// Draw cal count using drawCount
-void drawCals(uint32_t cals, uint8_t mode)
-{
-    uint32_t colour;
-    
-    // Divide by 1000 to get back into Kcals
-    cals = cals / 1000;
-    
-    
-    if(cals >= CAL_THRESHOLD)
-    {
-        colour = GREEN;
-    }
-    else{
-        colour = WHITE;
-    }
-    
-    if(mode == REST)
-    {
-        colour = colour & DIM;
-    }
-    
-    drawCount(51, 42, cals, colour);
-}
-
 
 

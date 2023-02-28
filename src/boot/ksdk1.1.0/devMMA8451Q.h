@@ -1,27 +1,21 @@
 /*
-	Authored 2016-2018. Phillip Stanley-Marbell. Additional contributors,
-	2018-onwards, see git log.
-
+	Authored 2016-2018. Phillip Stanley-Marbell.
+	Additional contributions, 2018 onwards: See git blame.
 	All rights reserved.
-
 	Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions
 	are met:
-
 	*	Redistributions of source code must retain the above
 		copyright notice, this list of conditions and the following
 		disclaimer.
-
 	*	Redistributions in binary form must reproduce the above
 		copyright notice, this list of conditions and the following
 		disclaimer in the documentation and/or other materials
 		provided with the distribution.
-
 	*	Neither the name of the author nor the names of its
 		contributors may be used to endorse or promote products
 		derived from this software without specific prior written
 		permission.
-
 	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 	"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 	LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -36,9 +30,24 @@
 	POSSIBILITY OF SUCH DAMAGE.
 */
 
-void		initMMA8451Q(const uint8_t i2cAddress, uint16_t operatingVoltageMillivolts);
+#ifndef WARP_BUILD_ENABLE_DEVMMA8451Q
+#define WARP_BUILD_ENABLE_DEVMMA8451Q
+#endif
+
+void		initMMA8451Q(const uint8_t i2cAddress, WarpI2CDeviceState volatile *  deviceStatePointer);
 WarpStatus	readSensorRegisterMMA8451Q(uint8_t deviceRegister, int numberOfBytes);
 WarpStatus	writeSensorRegisterMMA8451Q(uint8_t deviceRegister,
-					uint8_t payloadBtye);
-WarpStatus	configureSensorMMA8451Q(uint8_t payloadF_SETUP, uint8_t payloadCTRL_REG1);
+					uint8_t payloadBtye,
+					uint16_t menuI2cPullupValue);
+WarpStatus  configureSensorMMA8451Q(uint8_t payloadF_SETUP, uint8_t payloadCTRL_REG1_STB, uint8_t payloadXYZ_DATA, uint8_t payloadHP_CUTOFF, uint8_t payloadCTRL_REG1_ACT, uint16_t menuI2cPullupValue);
+WarpStatus	readSensorSignalMMA8451Q(WarpTypeMask signal,
+					WarpSignalPrecision precision,
+					WarpSignalAccuracy accuracy,
+					WarpSignalReliability reliability,
+					WarpSignalNoise noise);
 void		printSensorDataMMA8451Q(bool hexModeFlag);
+
+int16_t readAxis_x(void);
+int16_t readAxis_y(void);
+int16_t readAxis_z(void);
+
