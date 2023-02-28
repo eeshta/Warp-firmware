@@ -207,12 +207,19 @@ void displayBackground(uint8_t mode, uint8_t setting)
     }
     
     else if (setting == 2) {
-	    // CALS
+	    // SPEED
 	    writeCharacter(55, 63, 'S', text_colour);
 	    writeCharacter(63, 63, 'P', text_colour);
 	    writeCharacter(71, 63, 'E', text_colour);
 	    writeCharacter(79, 63, 'E', text_colour);
 	    writeCharacter(87, 63, 'D', text_colour);
+    }
+    
+    else if (setting == 3) {
+	    // BMI
+	    //writeCharacter(55, 63, 'B', text_colour);
+	    //writeCharacter(63, 63, 'M', text_colour);
+	    writeCharacter(71, 63, 'I', text_colour);
     }
     // Draw Line
     writeCommand(kSSD1331CommandDRAWLINE);
@@ -359,6 +366,20 @@ void drawSpeed(uint8_t speed, uint8_t mode)
     drawCount(51, 42, speed, colour);
 }
 
+void drawBMI(uint8_t bmi, uint8_t mode)
+{
+    uint32_t colour;
+    
+    colour = WHITE;
+    
+    if(mode == REST)
+    {
+        colour = colour & DIM;
+    }
+    
+    drawCount(51, 42, bmi, colour);
+}
+
 // Draw cal count using drawCount
 void drawCals(uint32_t cals, uint8_t mode)
 {
@@ -460,9 +481,10 @@ int main(void)
                             menuI2cPullupValue
                             );
 
-    
+    float	height_m	   = HEIGHT/1000;    //Height in m
     uint32_t    step_count          = 0;            // Tracks step count
-    uint16_t    speed		    = 0;            // Dist in m/s
+    uint16_t    speed		    = 0;            // speed in m/s
+    uint16_t    bmi		    = 23;            // BMI in kg/m^2
     uint32_t    last_step_count     = 0;            // Tracks last step count
     uint32_t    cal_count           = 0;            // Tracks calories (Kcal / 1000)
     uint8_t     mode                = 0;            // Tracks mode
@@ -471,7 +493,7 @@ int main(void)
     uint8_t     run_time            = 0;            // Time for one cycle to run
     uint32_t    last_step_time      = 0;            // Last step time
     uint8_t     ticks               = 0;            // Tracks seconds as measured by 50 cycles
-    uint8_t     setting             = 2;            // 1: CALS; 2: SPEED  
+    uint8_t     setting             = 2;            // 1: CALS; 2: SPEED; 3: BMI
     
     
     // Initialise display information
@@ -486,6 +508,10 @@ int main(void)
     
     else if (setting == 2){ //SPEED
         drawSpeed(speed, mode);
+    }
+    
+    else if (setting == 3){ //BMI
+	drawBMI(bmi, mode);
     }
 
 
@@ -508,11 +534,17 @@ int main(void)
                 step_count = countSteps(step_count);
                 mode = modeSelector(mode, last_step_time);
                 
+                if (setting ==3){
+                	drawBMI(bmi, mode);
+                }
+                
+                else {
                 // Count and update cals + speed every second (every 50 cycles)
                 if(ticks >= 50)
                 {
                     cal_count = countCals(cal_count, HEIGHT, WEIGHT);
                     speed = calcSpeed();
+                    //bmi = calcBMI();
                     
                     if (setting == 1){ //CALS
                     	drawCals(cal_count, mode);
@@ -521,9 +553,10 @@ int main(void)
                     else if (setting == 2){ //SPEED
                     	drawSpeed(speed, mode);
                     }
+                    
                     ticks = 0;
                 }
-        
+                }
 
                 // Update steps and reset step timer
                 if(step_count != last_step_count)
@@ -543,6 +576,10 @@ int main(void)
                     
                     else if (setting == 2){ //SPEED
                     	drawSpeed(speed, mode);
+                    }
+                    
+                    else if (setting == 3){ //BMI
+                    	drawBMI(bmi, mode);
                     }
                     displayBackground(mode, setting);
                     displayMode(mode);

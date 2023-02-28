@@ -6,4 +6,5 @@ uint32_t countSteps(uint32_t step_count);
 uint32_t countCals(uint32_t cal_count, uint8_t height, uint8_t weight);
 uint8_t modeSelector(uint8_t mode, uint32_t last_step_time);
 
-#define HEIGHT		168 //HEight in cm
+#define HEIGHT		168 //Height in cm
+#define WEIGHT		65  //Weight in kg

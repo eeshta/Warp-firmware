@@ -236,6 +236,8 @@ uint16_t calcSpeed(void)
 	return round((steps_in_buffer*stride)/3);  //AS ABOVE
 	
 }
+
+
 // Select mode based on steps
 uint8_t modeSelector(uint8_t mode, uint32_t last_step_time)
 {

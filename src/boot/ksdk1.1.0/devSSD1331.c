@@ -334,6 +334,7 @@ void writeCharacter(uint8_t column, uint8_t row, char character, uint32_t colour
         
         break;
     }
+    
     case 'C':
     {
         drawLine(column + 2, row, 2, 0, colour);
@@ -346,6 +347,20 @@ void writeCharacter(uint8_t column, uint8_t row, char character, uint32_t colour
 
         break;
     }
+    
+    case 'D':
+    {
+        
+        drawLine(column, row, 0, 10, colour);
+        drawLine(column, row, 3, 0, colour);
+        drawLine(column, row + 10, 3, 0, colour);
+        drawLine(column + 6, row + 2, 0, 6, colour);
+        drawLine(column + 4, row, 2, 2, colour);
+        drawLine(column + 4, row + 10, 2, -2, colour);
+
+        break;
+    }
+    
     case 'E':
     {
         drawLine(column, row, 6, 0, colour);
