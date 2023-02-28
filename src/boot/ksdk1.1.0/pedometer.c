@@ -16,6 +16,7 @@
 #include "warp.h"
 
 #include "devMMA8451Q.h"
+#include "pedometer.h"
 
 #define BUFF_LENGTH             9
 #define STEP_BUFF_LENGTH        150             // Record steps for last 3s for mode selection
@@ -124,6 +125,46 @@ uint32_t countSteps(uint32_t step_count){
     return step_count;
 }
 
+float calcStride(uint8_t height){
+    uint8_t stride;
+    
+    // Calculate stride length from steps per 3s
+    if(steps_in_buffer < 3)
+    {
+        stride = height / 5;
+    }
+    
+    else if(steps_in_buffer < 4)
+    {
+        stride = height / 4;
+    }
+    
+    else if(steps_in_buffer < 6)
+    {
+        stride = height / 3;
+    }
+    
+    else if(steps_in_buffer < 7)
+    {
+        stride = height / 2;
+    }
+    
+    else if(steps_in_buffer < 9)
+    {
+        stride = height / 1.2;
+    }
+    
+    else if(steps_in_buffer < 12)
+    {
+        stride = height;
+    }
+    
+    else
+    {
+        stride = height * 1.2;
+    }
+    return(stride);
+}
 
 // Count calories based on speed, weight and height
 uint32_t countCals(uint32_t cal_count, uint8_t height, uint8_t weight)
@@ -191,6 +232,7 @@ uint32_t countCals(uint32_t cal_count, uint8_t height, uint8_t weight)
 uint16_t calcSpeed(void)
 {
 	float stride = 0;
+	stride = calcStride(HEIGHT)/100;
 	return round((steps_in_buffer*stride)/3);  //AS ABOVE
 	
 }

@@ -462,8 +462,8 @@ int main(void)
 
     
     uint32_t    step_count          = 0;            // Tracks step count
-    uint32_t    last_step_count     = 0;            // Tracks last step count
     uint16_t    speed		    = 0;            // Dist in m/s
+    uint32_t    last_step_count     = 0;            // Tracks last step count
     uint32_t    cal_count           = 0;            // Tracks calories (Kcal / 1000)
     uint8_t     mode                = 0;            // Tracks mode
     uint8_t     last_mode           = 0;            // Tracks last mode
@@ -479,13 +479,13 @@ int main(void)
     displayMode(mode);
     drawSteps(step_count,mode);
     
-    if (setting == 1 ){
+    if (setting == 1 ){ //CALS
         drawCals(cal_count,mode);
     }
 
     
-    else if (setting == 2){
-        drawSpeed(speed,mode);
+    else if (setting == 2){ //SPEED
+        drawSpeed(speed, mode);
     }
 
 
@@ -508,17 +508,17 @@ int main(void)
                 step_count = countSteps(step_count);
                 mode = modeSelector(mode, last_step_time);
                 
-                // Count and update cals every second (every 50 cycles)
+                // Count and update cals + speed every second (every 50 cycles)
                 if(ticks >= 50)
                 {
                     cal_count = countCals(cal_count, HEIGHT, WEIGHT);
                     speed = calcSpeed();
                     
-                    if (setting == 1){
+                    if (setting == 1){ //CALS
                     	drawCals(cal_count, mode);
                     }
                     
-                    else if (setting == 2){
+                    else if (setting == 2){ //SPEED
                     	drawSpeed(speed, mode);
                     }
                     ticks = 0;
@@ -537,11 +537,11 @@ int main(void)
                 // Update mode
                 if(last_mode != mode)
                 {
-               	    if (setting == 1){
+               	    if (setting == 1){ //CALS
                     	drawCals(cal_count, mode);
                     }
                     
-                    else if (setting == 2){
+                    else if (setting == 2){ //SPEED
                     	drawSpeed(speed, mode);
                     }
                     displayBackground(mode, setting);
