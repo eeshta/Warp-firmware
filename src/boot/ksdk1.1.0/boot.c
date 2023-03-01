@@ -67,6 +67,7 @@ volatile uint32_t gWarpI2cTimeoutMilliseconds = 5;
 volatile uint32_t gWarpSpiTimeoutMicroseconds = 5;
 
 // Define some standard colours
+#define PINK		0XFF10F0
 #define WHITE           0xFFFFFF
 #define RED             0xFF0000
 #define GREEN           0x00FF00
@@ -80,7 +81,7 @@ volatile uint32_t gWarpSpiTimeoutMicroseconds = 5;
 // User defined thresholds for 'completing rings'
 #define STEP_THRESHOLD  10
 #define CAL_THRESHOLD   10
-#define SPEED_THRESHOLD 3.62
+#define SPEED_THRESHOLD 12.43
 
 // Modes
 #define REST            0
@@ -180,12 +181,12 @@ void displayBackground(uint8_t mode, uint8_t setting)
     if(mode == REST)
     {
         text_colour = WHITE & DIM;      // Bitwise AND colour with DIM for dimmed colours
-        line_colour = CYAN & DIM;       // (only works for primary and secondary colours but will do for use here)
+        line_colour = PINK & DIM;       // (only works for primary and secondary colours but will do for use here)
     }
     else
     {
         text_colour = WHITE;
-        line_colour = CYAN;
+        line_colour = PINK;
     }
     
     // STEPS
@@ -218,12 +219,25 @@ void displayBackground(uint8_t mode, uint8_t setting)
 	    //writeCharacter(63, 63, 'M', text_colour);
 	    writeCharacter(71, 63, 'I', text_colour);
     }
+    
+    
+
     // Draw Line
     writeCommand(kSSD1331CommandDRAWLINE);
-    writeCommand(2);             // Col start
-    writeCommand(63-19);         // Row start
-    writeCommand(92);            // Col end
-    writeCommand(63-19);         // Row end
+    writeCommand(47);             // Col start
+    writeCommand(63-63);         // Row start
+    writeCommand(47);            // Col end
+    writeCommand(63-31);         // Row end
+    writeCommand((uint8_t)(line_colour >> 16) & 0xFF);          // Line red
+    writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
+    writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
+
+   // Draw Box with lines
+    writeCommand(kSSD1331CommandDRAWLINE);
+    writeCommand(1);             // Col start
+    writeCommand(63-20);         // Row start
+    writeCommand(96);            // Col end
+    writeCommand(63-20);         // Row end
     writeCommand((uint8_t)(line_colour >> 16) & 0xFF);          // Line red
     writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
     writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
@@ -241,9 +255,10 @@ void displayMode(uint8_t mode)
     case 0:
     {
     // ---
-    writeCharacter(36, 11, '-', WHITE & DIM);
-    writeCharacter(44, 11, '-', WHITE & DIM);
-    writeCharacter(52, 11, '-', WHITE & DIM);
+    writeCharacter(34, 11, 'R', WHITE & DIM);
+    writeCharacter(42, 11, 'E', WHITE & DIM);
+    writeCharacter(50, 11, 'S', WHITE & DIM);
+    writeCharacter(58, 11, 'T', WHITE & DIM);
         
     break;
     }
