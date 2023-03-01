@@ -72,6 +72,7 @@ volatile uint32_t gWarpSpiTimeoutMicroseconds = 5;
 #define GREEN           0x00FF00
 #define BLUE            0x0000FF
 #define CYAN            0x00FFFF
+#define GOLD		0xFFD700
 
 // Define a dimmed brightness
 #define DIM             0x0A0A0A
@@ -79,16 +80,12 @@ volatile uint32_t gWarpSpiTimeoutMicroseconds = 5;
 // User defined thresholds for 'completing rings'
 #define STEP_THRESHOLD  10
 #define CAL_THRESHOLD   10
-#define SPEED_THRESHOLD 10
+#define SPEED_THRESHOLD 3.62
 
 // Modes
 #define REST            0
 #define WALK            1
 #define RUN             2
-
-// Used defined parameters
-#define HEIGHT          168         // Height in cm
-#define WEIGHT          65          // Weight in kg
 
 
 void enableSPIpins(void)
@@ -352,7 +349,7 @@ void drawSpeed(uint8_t speed, uint8_t mode)
     
     if(speed >= SPEED_THRESHOLD)
     {
-        colour = GREEN;
+        colour = GOLD;
     }
     else{
         colour = WHITE;
@@ -494,7 +491,7 @@ int main(void)
     uint32_t    last_step_time      = 0;            // Last step time
     uint8_t     ticks               = 0;            // Tracks seconds as measured by 50 cycles
     uint8_t     setting             = 2;            // 1: CALS; 2: SPEED; 3: BMI
-    
+        
     
     // Initialise display information
     displayBackground(mode,setting);
@@ -521,7 +518,6 @@ int main(void)
                 // Measure start time
                 start_time = OSA_TimeGetMsec();
                 ticks ++;
-
                 // Reset steps when 100000 is reached to avoid overflow
                 if(step_count >= 100000)
                 {
