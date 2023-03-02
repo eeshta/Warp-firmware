@@ -31,7 +31,7 @@ gpio_output_pin_user_config_t	outputPins[] = {
 	/*
 	 *	Set unused pins as outputs
 	 */
-	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT && !WARP_BUILD_ENABLE_FRDMKL03)
+	#if (!WARP_BUILD_ENABLE_GLAUX_VARIANT)
 		{
 			.pinName = kWarpPinBGX_nRST,
 			.config.outputLogic = 1,
@@ -58,22 +58,12 @@ gpio_output_pin_user_config_t	outputPins[] = {
 			.config.slewRate = kPortSlowSlewRate,
 			.config.driveStrength = kPortLowDriveStrength,
 		},
-
-		#if (WARP_BUILD_ENABLE_DEVIS25xP)
-		{
-			.pinName = kWarpPinIS25xP_SPI_nCS,
-			.config.outputLogic = 1,
-			.config.slewRate = kPortSlowSlewRate,
-			.config.driveStrength = kPortLowDriveStrength,
-		},
-		#else
 		{
 			.pinName = kWarpPinAT45DB_SPI_nCS,
 			.config.outputLogic = 1,
 			.config.slewRate = kPortSlowSlewRate,
 			.config.driveStrength = kPortLowDriveStrength,
 		},
-		#endif
 		{
 			.pinName = kWarpPinISL23415_SPI_nCS,
 			.config.outputLogic = 1,
@@ -152,7 +142,7 @@ gpio_output_pin_user_config_t	outputPins[] = {
 			.config.driveStrength = kPortLowDriveStrength,
 		},
 		*/
-	#elif (WARP_BUILD_ENABLE_GLAUX_VARIANT)
+	#else
 		{
 			.pinName = kGlauxPinLED,
 			.config.outputLogic = 1,
@@ -165,8 +155,6 @@ gpio_output_pin_user_config_t	outputPins[] = {
 			.config.slewRate = kPortSlowSlewRate,
 			.config.driveStrength = kPortLowDriveStrength,
 		},
-	#elif (WARP_BUILD_ENABLE_FRDMKL03)
-
 	#endif
 
 	{
@@ -193,13 +181,6 @@ gpio_output_pin_user_config_t	outputPins[] = {
  *	NOTE: The semantics is that pins that are excluded are disabled (TODO: double check).
  */
 gpio_input_pin_user_config_t	inputPins[] = {
-	{
-		.pinName = kWarpPinSW2,
-		.config.isPullEnable = true,
-		.config.pullSelect = kPortPullUp,
-		.config.isPassiveFilterEnabled = false,
-		.config.interrupt = kPortIntDisabled,
-	},	
 	{
 		.pinName = GPIO_PINS_OUT_OF_RANGE,
 	}

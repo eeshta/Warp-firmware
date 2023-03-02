@@ -73,7 +73,6 @@ Revision: $Rev: 12489 $
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <strings.h>
 
 
 #define FORMAT_FLAG_LEFT_JUSTIFY   (1u << 0)

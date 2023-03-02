@@ -1,4 +1,42 @@
+/*
+	Authored 2016-2021. Phillip Stanley-Marbell.
+	
+	Additional contributions, 2018: Jan Heck, Chatura Samarakoon, Youchao Wang, Sam Willis.
+	All rights reserved.
+	Redistribution and use in source and binary forms, with or without
+	modification, are permitted provided that the following conditions
+	are met:
+	*	Redistributions of source code must retain the above
+		copyright notice, this list of conditions and the following
+		disclaimer.
+	*	Redistributions in binary form must reproduce the above
+		copyright notice, this list of conditions and the following
+		disclaimer in the documentation and/or other materials
+		provided with the distribution.
+	*	Neither the name of the author nor the names of its
+		contributors may be used to endorse or promote products
+		derived from this software without specific prior written
+		permission.
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+	"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+	LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+	FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+	COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+	CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+	ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+	POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include <stdint.h>
+
+/*
+ *	config.h needs to come first
+ */
+#include "config.h"
 
 #include "fsl_spi_master_driver.h"
 #include "fsl_port_hal.h"
@@ -7,9 +45,10 @@
 #include "gpio_pins.h"
 #include "warp.h"
 #include "devSSD1331.h"
+//#include "devSSD1331_extra.h"
 
-volatile uint8_t	inBuffer[32];
-volatile uint8_t	payloadBytes[32];
+volatile uint8_t	inBuffer[1];
+volatile uint8_t	payloadBytes[1];
 
 
 /*
@@ -19,12 +58,13 @@ enum
 {
 	kSSD1331PinMOSI		= GPIO_MAKE_PIN(HW_GPIOA, 8),
 	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
-	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
+	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 11),
 	kSSD1331PinDC		= GPIO_MAKE_PIN(HW_GPIOA, 12),
 	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
 };
 
-int writeCommand(uint8_t commandByte)
+static int
+writeCommand(uint8_t commandByte)
 {
 	spi_status_t status;
 
@@ -34,7 +74,7 @@ int writeCommand(uint8_t commandByte)
 	 *	Make sure there is a high-to-low transition by first driving high, delay, then drive low.
 	 */
 	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
-	//OSA_TimeDelay(1);
+	//OSA_TimeDelay(10);
 	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
 
 	/*
@@ -58,11 +98,9 @@ int writeCommand(uint8_t commandByte)
 	return status;
 }
 
-
-
-void devSSD1331init(void)
+int
+devSSD1331init(void)
 {
-
 	/*
 	 *	Override Warp firmware's use of these pins.
 	 *
@@ -78,7 +116,7 @@ void devSSD1331init(void)
 	 *
 	 *	Reconfigure to use as GPIO.
 	 */
-	PORT_HAL_SetMuxMode(PORTB_BASE, 13u, kPortMuxAsGpio);
+	PORT_HAL_SetMuxMode(PORTB_BASE, 11u, kPortMuxAsGpio);
 	PORT_HAL_SetMuxMode(PORTA_BASE, 12u, kPortMuxAsGpio);
 	PORT_HAL_SetMuxMode(PORTB_BASE, 0u, kPortMuxAsGpio);
 
@@ -125,22 +163,20 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandVCOMH);		// 0xBE
 	writeCommand(0x3E);
 	writeCommand(kSSD1331CommandMASTERCURRENT);	// 0x87
-	writeCommand(0x0F);
+	writeCommand(0x06);
 	writeCommand(kSSD1331CommandCONTRASTA);		// 0x81
-	writeCommand(0xFF);
+	writeCommand(0x91);
 	writeCommand(kSSD1331CommandCONTRASTB);		// 0x82
-	writeCommand(0xFF);
+	writeCommand(0x50);
 	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
-	writeCommand(0xFF);
+	writeCommand(0x7D);
 	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
-//	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialization sequence...\n");
 
 	/*
 	 *	To use fill commands, you will have to issue a command to the display to enable them. See the manual.
 	 */
 	writeCommand(kSSD1331CommandFILL);
 	writeCommand(0x01);
-	//SEGGER_RTT_WriteString(0, "\r\n\tDone with enabling fill...\n");
 
 	/*
 	 *	Clear Screen
@@ -150,10 +186,16 @@ void devSSD1331init(void)
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
-//	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
-    return;
-}
 
+
+
+	/*
+	 *	Any post-initialization drawing commands go here.
+	 */
+	//...
+	
+	return 0;
+}
 
 void clearScreen(void)
 {
@@ -166,6 +208,9 @@ void clearScreen(void)
     return;
 }
 
+/*
+Helper functions for Drawing the Pedometer interface defined in pedometer.c
+*/
 
 void clearSection(uint8_t column, uint8_t row, uint8_t across, uint8_t down){
     
@@ -197,7 +242,7 @@ void drawLine(uint8_t column, uint8_t row, uint8_t across, uint8_t down, uint32_
 }
 
 
-// Draws digits in a 7x11 shaped box starting at the top left coordinates given
+// Draws digits 0-9 in a 7x11 shaped box starting at the top left coordinates given
 void writeDigit(uint8_t column, uint8_t row, uint8_t digit, uint32_t colour)
 {
     clearSection(column, row, 6, 10);
@@ -315,7 +360,7 @@ void writeDigit(uint8_t column, uint8_t row, uint8_t digit, uint32_t colour)
     return;
 }
 
-// Writes a character symbol in a 7x11 sized box
+// Writes a character symbol in a 7x11 sized box. Only the characters used in the implementation have been worked out
 void writeCharacter(uint8_t column, uint8_t row, char character, uint32_t colour)
 {
     clearSection(column, row, 6, 10);
@@ -334,7 +379,6 @@ void writeCharacter(uint8_t column, uint8_t row, char character, uint32_t colour
         
         break;
     }
-    
     case 'C':
     {
         drawLine(column + 2, row, 2, 0, colour);
@@ -347,7 +391,6 @@ void writeCharacter(uint8_t column, uint8_t row, char character, uint32_t colour
 
         break;
     }
-    
     case 'D':
     {
         
@@ -360,7 +403,6 @@ void writeCharacter(uint8_t column, uint8_t row, char character, uint32_t colour
 
         break;
     }
-    
     case 'E':
     {
         drawLine(column, row, 6, 0, colour);
@@ -495,4 +537,3 @@ void writeCharacter(uint8_t column, uint8_t row, char character, uint32_t colour
         
     return;
 }
-

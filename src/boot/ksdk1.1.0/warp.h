@@ -100,8 +100,8 @@ typedef enum
 {
 	kWarpSensorConfigurationRegisterMMA8451QF_SETUP			= 0x09,
 	kWarpSensorConfigurationRegisterMMA8451QCTRL_REG1		= 0x2A,
-	kWarpSensorConfigurationRegisterMMA8451QXYZ_DATA        = 0x0E,
-    kWarpSensorConfigurationRegisterMMA8451QHP_CUTOFF       = 0x0F,
+	kWarpSensorConfigurationRegisterMMA8451QXYZ_DATA        	= 0x0E,
+        kWarpSensorConfigurationRegisterMMA8451QHP_CUTOFF       	= 0x0F,
 
 	// TODO: Check SensorConfigurationRegister
 	kWarpSensorConfigurationRegisterINA219CONFIG			= 0x00,
