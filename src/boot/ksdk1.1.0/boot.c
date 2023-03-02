@@ -489,9 +489,7 @@ int main(void)
                             0x00,/* Normal read 14bit, 800Hz, normal, standby mode to write HP */
                             0x11,/* 4G Scale, HPF data enabled */
                             0x00,/* 16Hz cutoff */
-                            0x01,/* Normal read 14bit, 800Hz, normal, active mode*/
-                            menuI2cPullupValue
-                            );
+                            0x01/* Normal read 14bit, 800Hz, normal, active mode*/);
 
     float	height_m	   = HEIGHT/1000;    //Height in m
     uint32_t    step_count          = 0;            // Tracks step count
