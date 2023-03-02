@@ -1856,8 +1856,9 @@ main(void)
 
     
     uint32_t    step_count          = 0;            // Tracks step count
-	uint32_t 	distance			= 0;			// Distance in m
-	uint16_t	speed				= 0;			// Speed in m/s
+    uint32_t 	distance	    = 0;	    // Distance in m
+    uint16_t	speed		    = 0;	    // Speed in m/s
+    int    	bmi		    = 23;	    // BMI in kg/m^2
     uint32_t    last_step_count     = 0;            // Tracks last step count
     uint32_t    cal_count           = 0;            // Tracks calories (Kcal / 1000)
     uint8_t     mode                = 0;            // Tracks exercise mode
@@ -1866,10 +1867,9 @@ main(void)
     uint8_t     run_time            = 0;            // Time for one cycle to run
     uint32_t    last_step_time      = 0;            // Last step time
     uint8_t     ticks               = 0;            // Tracks seconds as measured by 50 cycles
-	uint8_t		ticks3				= 0;			// Tracks 3 seconds 
-	uint8_t 	setting 			= 3;			// Toggle between different display versions (1,2,3)
+    uint8_t	ticks3		    = 0;	    // Tracks 3 seconds 
+    uint8_t 	setting 	    = 4;	    // Toggle between different display versions (1,2,3,4)
 													
-    
     // Initialise display information
     displayBackground(mode, setting);
     displayMode(mode);
@@ -1886,6 +1886,11 @@ main(void)
     else if (setting == 3){  
         // SPEED
 		drawSpeed(speed, mode);
+    }
+    
+    else if (setting == 4){
+    	// BMI
+    		drawBMI(bmi, speed);
     }
     
 
@@ -1911,36 +1916,42 @@ main(void)
                 mode = modeSelector(mode, last_step_time);
 				
                 
+                if (setting == 4){
+                	drawBMI(bmi, mode);
+                }
+                
+                else {
+                
                 // Count and update cals/speed every second (every 50 cycles)
-                if(ticks >= 50)
-                {
-                    cal_count = countCals(cal_count, HEIGHT, WEIGHT);
-					speed = calcSpeed();
+                	if(ticks >= 50)
+		        {
+		            cal_count = countCals(cal_count, HEIGHT, WEIGHT);
+						speed = calcSpeed();
 
-                    if (setting == 1){
-        				// CALS
-						drawCals(cal_count, mode);
-    				}
-    				else if (setting == 3) {  
-        				// SPEED
-						drawSpeed(speed, mode);
-    				}
+		            if (setting == 1){
+						// CALS
+							drawCals(cal_count, mode);
+	    				}
+	    				else if (setting == 3) {  
+						// SPEED
+							drawSpeed(speed, mode);
+	    				}
 
-                    ticks = 0;
-                }
+		            ticks = 0;
+		        }
 
-				// Count and update dist every 3 seconds (every 150 cycles)
-                if(ticks3 >= 150)
-                {
-                    distance = calcDistance(distance);
+					// Count and update dist every 3 seconds (every 150 cycles)
+		        if(ticks3 >= 150)
+		        {
+		            distance = calcDistance(distance);
 
-                    if (setting == 2){
-        				// CALS
-						drawDist(distance, mode);
-					}
-                    ticks3 = 0;
-                }
-        
+		            if (setting == 2){
+						// CALS
+							drawDist(distance, mode);
+						}
+		            ticks3 = 0;
+		        }
+        	}
 
                 // Update steps and reset step timer
                 if(step_count != last_step_count)
@@ -1966,6 +1977,11 @@ main(void)
         				// SPEED
 						drawSpeed(speed, mode);
     				}
+    				
+    				   else if (setting == 4){ 
+    				   	//BMI
+						drawBMI(bmi, mode);
+			    	}
                     displayBackground(mode, setting);
                     displayMode(mode);
                     drawSteps(step_count, mode);

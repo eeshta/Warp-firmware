@@ -1,4 +1,5 @@
 // Define some standard colours
+#define PINK		0XFF10F0
 #define WHITE           0xFFFFFF
 #define RED             0xFF0000
 #define GREEN           0x00FF00
@@ -12,6 +13,7 @@
 #define STEP_THRESHOLD  10
 #define CAL_THRESHOLD   10
 #define DIST_THRESHOLD  10
+#define SPEED_THRESHOLD 12.43
 
 // Modes
 #define REST            0
@@ -19,8 +21,8 @@
 #define RUN             2
 
 // User defined parameters
-#define HEIGHT          183         // Height in cm
-#define WEIGHT          80          // Weight in kg
+#define HEIGHT          168         // Height in cm
+#define WEIGHT          65          // Weight in kg
 
 int16_t combine_stream(int16_t x_data, int16_t y_data, int16_t z_data);
 void    lpf(void);

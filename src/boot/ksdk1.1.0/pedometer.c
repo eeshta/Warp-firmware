@@ -27,6 +27,7 @@
 #define RUNNING_THRESH          8               // Threshold for running mode - 8 steps in 3s = 2.66Hz
 #define REST_TIME               2500            // Enter rest mode after 5s
 
+
 int16_t     diff_coeff[BUFF_LENGTH]     =   {0,0,0,1,0,-1,0,0,0};               // FIR derivative
 int16_t     lpf_coeff[BUFF_LENGTH]      =   {1,6,22,44,54,44,22,6,1};           // FIR LPF filter designed using MATLAB
 
@@ -327,12 +328,12 @@ void displayBackground(uint8_t mode, uint8_t setting)
     if(mode == REST)
     {
         text_colour = WHITE & DIM;      // Bitwise AND colour with DIM for dimmed colours
-        line_colour = CYAN & DIM;       // (only works for primary and secondary colours but will do for use here)
+        line_colour = PINK & DIM;       // (only works for primary and secondary colours but will do for use here)
     }
     else
     {
         text_colour = WHITE;
-        line_colour = CYAN;
+        line_colour = PINK;
     }
     
     // STEPS
@@ -372,12 +373,29 @@ void displayBackground(uint8_t mode, uint8_t setting)
 
     }
     
+    else if (setting == 4) {
+	    // BMI
+	    //writeCharacter(55, 63, 'B', text_colour);
+	    //writeCharacter(63, 63, 'M', text_colour);
+	    writeCharacter(71, 63, 'I', text_colour);
+    }
+    
     // Draw Line
     writeCommand(kSSD1331CommandDRAWLINE);
-    writeCommand(2);             // Col start
-    writeCommand(63-19);         // Row start
-    writeCommand(92);            // Col end
-    writeCommand(63-19);         // Row end
+    writeCommand(47);             // Col start
+    writeCommand(63-63);         // Row start
+    writeCommand(47);            // Col end
+    writeCommand(63-31);         // Row end
+    writeCommand((uint8_t)(line_colour >> 16) & 0xFF);          // Line red
+    writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
+    writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
+
+   // Draw horizontal line
+    writeCommand(kSSD1331CommandDRAWLINE);
+    writeCommand(1);             // Col start
+    writeCommand(63-20);         // Row start
+    writeCommand(96);            // Col end
+    writeCommand(63-20);         // Row end
     writeCommand((uint8_t)(line_colour >> 16) & 0xFF);          // Line red
     writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
     writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
@@ -394,9 +412,10 @@ void displayMode(uint8_t mode)
     case 0:
     {
     // ---
-    writeCharacter(36, 11, '-', WHITE & DIM);
-    writeCharacter(44, 11, '-', WHITE & DIM);
-    writeCharacter(52, 11, '-', WHITE & DIM);
+    writeCharacter(34, 11, 'R', WHITE & DIM);
+    writeCharacter(42, 11, 'E', WHITE & DIM);
+    writeCharacter(50, 11, 'S', WHITE & DIM);
+    writeCharacter(58, 11, 'T', WHITE & DIM);
         
     break;
     }
@@ -551,6 +570,20 @@ void drawCals(uint32_t cals, uint8_t mode)
     }
     
     drawCount(51, 42, cals, colour);
+}
+
+void drawBMI(uint8_t bmi, uint8_t mode)
+{
+    uint32_t colour;
+
+    colour = WHITE;
+
+    if(mode == REST)
+    {
+        colour = colour & DIM;
+    }
+
+    drawCount(51, 42, bmi, colour);
 }
 
 
