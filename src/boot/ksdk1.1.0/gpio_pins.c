@@ -182,6 +182,13 @@ gpio_output_pin_user_config_t	outputPins[] = {
  */
 gpio_input_pin_user_config_t	inputPins[] = {
 	{
+		.pinName = kWarpPinSW2,
+		.config.isPullEnable = true,
+		.config.pullSelect = kPortPullDown,
+		.config.isPassiveFilterEnabled = false,
+		.config.interrupt = kPortIntDisabled,
+	},
+	{
 		.pinName = GPIO_PINS_OUT_OF_RANGE,
 	}
 };

@@ -1583,7 +1583,26 @@ main(void)
 	warpPrint("About to lowPowerPinStates()... ");
 	lowPowerPinStates();
 	warpPrint("done.\n");
+	
+	#if (WARP_BUILD_ENABLE_DEVINA219)
+		warpPrint("About to configure INA219...\n");
+		if (!initINA219()){
+			warpPrint("Init Passed.\n");
+			warpPrint("Bus Voltage: %d mV\n", getBusVoltagemVINA219());
+			warpPrint("Shunt Voltage: %d uV\n", getShuntVoltageuVINA219());
+			OSA_TimeDelay(2000);
+			warpPrint("Current: %d mA\n", getCurrentmAINA219());
+			warpPrint("Power: %d mW\n", getPowermWINA219());
+		}else{
+			warpPrint("Init Failed.\n");
+		}		
+	#endif
 
+
+	#if (WARP_BUILD_ENABLE_DEVINA219)
+		get1000Currents();
+	#endif
+	
 	/*
 	 *	Initialize all the sensors
 	 */
@@ -1592,10 +1611,10 @@ main(void)
 		initBMX055gyro(	0x68	/* i2cAddress */,	&deviceBMX055gyroState,		kWarpDefaultSupplyVoltageMillivoltsBMX055gyro	);
 		initBMX055mag(	0x10	/* i2cAddress */,	&deviceBMX055magState,		kWarpDefaultSupplyVoltageMillivoltsBMX055mag	);
 	#endif
-
-	#if (WARP_BUILD_ENABLE_DEVINA219)
-		initINA219(	0x40	/* i2cAddress */,		kWarpDefaultSupplyVoltageMillivoltsINA219	);
-	#endif
+	
+	//#if (WARP_BUILD_ENABLE_DEVINA219)
+	//	initINA219(	0x40	/* i2cAddress */,		kWarpDefaultSupplyVoltageMillivoltsINA219	);
+	//#endif
 
 	#if (WARP_BUILD_ENABLE_DEVMMA8451Q)
 		initMMA8451Q(	0x1D	/* i2cAddress */,		kWarpDefaultSupplyVoltageMillivoltsMMA8451Q	);
@@ -1868,7 +1887,7 @@ main(void)
     uint32_t    last_step_time      = 0;            // Last step time
     uint8_t     ticks               = 0;            // Tracks seconds as measured by 50 cycles
     uint8_t	ticks3		    = 0;	    // Tracks 3 seconds 
-    uint8_t 	setting 	    = 4;	    // Toggle between different display versions (1,2,3,4)
+    int 	setting 	    = 1;	    // Toggle between different display versions (1,2,3,4)
 													
     // Initialise display information
     displayBackground(mode, setting);
@@ -1896,11 +1915,17 @@ main(void)
 
     warpPrint("\nRunning...\n\r");
     
+    volatile bool isButtonPress = false;
     while(1){
+    		//Mode Switch (1 is off, 0 is on)
+    		uint32_t modegame = GPIO_DRV_ReadPinInput(kWarpPinSW2);
+    		
+    		
+    		
                 // Measure start time
                 start_time = OSA_TimeGetMsec();
                 ticks ++;
-				ticks3 ++;
+		ticks3 ++;
 
                 // Reset steps when 100000 is reached to avoid overflow
                 if(step_count >= 100000)
@@ -1914,8 +1939,16 @@ main(void)
                 // Count steps
                 step_count = countSteps(step_count);
                 mode = modeSelector(mode, last_step_time);
+		
+		/*
+		//Toggle between settings when SW2 pressed		
+                if (modegame == 0){
+                	clearScreen();
+                	//fillscreen(0x98, 0xFB, 0x98);	
 				
-                
+    		}
+    		*/
+    		
                 if (setting == 4){
                 	drawBMI(bmi, mode);
                 }

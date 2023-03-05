@@ -71,7 +71,7 @@ enum _gpio_pins
 	#else
 		kWarpPinSI4705_nRST		= GPIO_MAKE_PIN(HW_GPIOB, 2),
 	#endif
-
+	kWarpPinSW2				= GPIO_MAKE_PIN(HW_GPIOB, 0),
 	kWarpPinI2C0_SCL_UART_TX		= GPIO_MAKE_PIN(HW_GPIOB, 3),
 	kWarpPinI2C0_SDA_UART_RX		= GPIO_MAKE_PIN(HW_GPIOB, 4),
 	kWarpPinTPS62740_REGCTRL		= GPIO_MAKE_PIN(HW_GPIOB, 5),

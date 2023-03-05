@@ -197,6 +197,29 @@ devSSD1331init(void)
 	return 0;
 }
 
+void rectdraw(uint8_t col, uint8_t row, uint8_t endcol, uint8_t endrow)
+{
+	writeCommand(kSSD1331CommandDRAWRECT);
+	writeCommand(col);
+	writeCommand(row);
+	writeCommand(endcol);
+	writeCommand(endrow);				
+
+}
+
+void textcol(uint8_t red, uint8_t green, uint8_t blue){
+	writeCommand(red);
+	writeCommand(green);
+	writeCommand(blue);
+	writeCommand(red);
+	writeCommand(green);
+	writeCommand(blue);					
+}
+void fillscreen(uint8_t red, uint8_t green, uint8_t blue){
+	rectdraw(0x00, 0x00, 0x5F, 0x3F);
+	textcol(red, green, blue);
+}
+
 void clearScreen(void)
 {
     writeCommand(kSSD1331CommandCLEAR);

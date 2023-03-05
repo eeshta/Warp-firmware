@@ -46,6 +46,9 @@ int	devSSD1331init(void);
 
 void devSSD1331green_rect(void);
 void clearScreen(void);
+void fillscreen(uint8_t red, uint8_t green, uint8_t blue);
+void textcol(uint8_t red, uint8_t green, uint8_t blue);
+
 void clearSection(uint8_t col_start, uint8_t row_start, uint8_t col_end, uint8_t row_end);
 
 void drawLine(uint8_t column, uint8_t row, uint8_t across, uint8_t down, uint32_t colour);

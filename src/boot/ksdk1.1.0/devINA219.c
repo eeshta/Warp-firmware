@@ -1,45 +1,9 @@
-/*
-	Authored 2016-2018. Phillip Stanley-Marbell. Additional contributors,
-	2018-onwards, see git log.
-
-	All rights reserved.
-
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions
-	are met:
-
-	*	Redistributions of source code must retain the above
-		copyright notice, this list of conditions and the following
-		disclaimer.
-
-	*	Redistributions in binary form must reproduce the above
-		copyright notice, this list of conditions and the following
-		disclaimer in the documentation and/or other materials
-		provided with the distribution.
-
-	*	Neither the name of the author nor the names of its
-		contributors may be used to endorse or promote products
-		derived from this software without specific prior written
-		permission.
-
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-	"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-	LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-	FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-	COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-	BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-	CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-	ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
-*/
+/*!
+ * BSD license, all text here must be included in any redistribution.
+ *
+ */
 #include <stdlib.h>
 
-/*
- *	config.h needs to come first
- */
 #include "config.h"
 
 #include "fsl_misc_utilities.h"
@@ -52,196 +16,243 @@
 #include "fsl_mcglite_hal.h"
 #include "fsl_port_hal.h"
 
-#include "gpio_pins.h"
-#include "SEGGER_RTT.h"
+#include "devINA219.h"
 #include "warp.h"
 
+//#define ENABLE_PRINTF_DEBUG
 
-extern volatile WarpI2CDeviceState	deviceINA219State;
-extern volatile uint32_t		gWarpI2cBaudRateKbps;
-extern volatile uint32_t		gWarpI2cTimeoutMilliseconds;
-extern volatile uint32_t		gWarpSupplySettlingDelayMilliseconds;
+volatile uint8_t ina219_i2cBuffer[kWarpSizesI2cBufferBytes]; // 4
 
+uint32_t ina219_currentMultiplier_uA = 1;
+uint32_t ina219_powerMultiplier_uW = 1;
+uint16_t ina219_calValue = 1;
 
-
-void
-initINA219(const uint8_t i2cAddress, uint16_t operatingVoltageMillivolts)
+uint32_t readRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
 {
-	deviceINA219State.i2cAddress			= i2cAddress;
-	deviceINA219State.operatingVoltageMillivolts	= operatingVoltageMillivolts;
+    // warpPrint("Read R 0x%02x\n", deviceRegister);
+    uint8_t cmdBuf[1] = {0xFF};
+    i2c_status_t status;
 
-	return;
+    i2c_device_t slave =
+        {
+            .address = INA219_ADDRESS,
+            .baudRate_kbps = kWarpDefaultI2cBaudRateKbps
+        };
+
+    cmdBuf[0] = deviceRegister;
+    warpEnableI2Cpins();
+
+    status = I2C_DRV_MasterReceiveDataBlocking(
+        0 /* I2C peripheral instance */,
+        &slave,
+        cmdBuf,
+        1,
+        (uint8_t *)ina219_i2cBuffer,
+        numberOfBytes,
+        kWarpDefaultI2cTimeoutMilliseconds);
+
+    if (status != kStatus_I2C_Success)
+    {
+        return 1;
+    }
+
+    #ifdef ENABLE_PRINTF_DEBUG
+        warpPrint("Read 0x%02x: 0x%02x%02x\n", deviceRegister, ina219_i2cBuffer[0], ina219_i2cBuffer[1]);
+    #endif 
+
+    return 0;
 }
 
-WarpStatus
-writeSensorRegisterINA219(uint8_t deviceRegister, uint16_t payload)
+uint32_t writeRegisterINA219(uint8_t deviceRegister, uint16_t payload)
 {
-	uint8_t		payloadByte[2], commandByte[1];
-	i2c_status_t	status;
+    uint8_t payloadByte[1], commandByte[1];
+    i2c_status_t status;
 
-	switch (deviceRegister)
-	{
-		case 0x00: // Configuration register
-		case 0x05: // Calibration register
-		{
-			/* OK */
-			break;
-		}
-		
-		default:
-		{
-			return kWarpStatusBadDeviceCommand;
-		}
-	}
+    i2c_device_t slave =
+        {
+            .address = INA219_ADDRESS,
+            .baudRate_kbps = kWarpDefaultI2cBaudRateKbps
+        };
 
-	i2c_device_t slave =
-	{
-		.address = deviceINA219State.i2cAddress,
-		.baudRate_kbps = gWarpI2cBaudRateKbps
-	};
+    commandByte[0] = deviceRegister;
+    payloadByte[0] = (payload >> 8) & 0xFF;
+    payloadByte[1] = payload & 0xFF;
+    warpEnableI2Cpins();
 
-	warpScaleSupplyVoltage(deviceINA219State.operatingVoltageMillivolts);
-	commandByte[0] = deviceRegister;
-	payloadByte[0] = (uint8_t)(payload >> 8);
-	payloadByte[1] = (uint8_t)(payload);
-	warpEnableI2Cpins();
+    #ifdef ENABLE_PRINTF_DEBUG
+        warpPrint("Write R 0x%02x w 0x%02x,0x%02x \n", deviceRegister, payloadByte[0], payloadByte[1]);
+    #endif
 
-	status = I2C_DRV_MasterSendDataBlocking(
-							0 /* I2C instance */,
-							&slave,
-							commandByte,
-							1,
-							payloadByte,
-							2,
-							gWarpI2cTimeoutMilliseconds);
-	if (status != kStatus_I2C_Success)
-	{
-		return kWarpStatusDeviceCommunicationFailed;
-	}
+    status = I2C_DRV_MasterSendDataBlocking(
+        0 /* I2C instance */,
+        &slave,
+        commandByte,
+        1,
+        payloadByte,
+        2,
+        kWarpDefaultI2cTimeoutMilliseconds);
 
-	return kWarpStatusOK;
+    if (status != kStatus_I2C_Success)
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
-WarpStatus
-configureSensorINA219(uint16_t configBits, uint16_t calibrationValue)
+uint32_t initINA219()
 {
-	WarpStatus	i2cWriteStatus1, i2cWriteStatus2;
+    uint32_t status = 0;
 
+    // min theoretical current LSB with a calib reg of F000 is ~ 7uA per bit
 
-	warpScaleSupplyVoltage(deviceINA219State.operatingVoltageMillivolts);
+    // The OLED is specced to draw a maximum of 25mA with a supply voltage of 5v, across the 0.1 Ohm shunt. max
+    // Select the Vbus full scale measurement range as 16V = VBUS_MAX (NOT 32V)
+    // Select the smallest PGA gain of 0.04 = VSHUNT_MAX (this is 40mV - given in page 15 of INA219 datasheet)
+    // Rshunt = 0.1
+    // Max possible measured current of 0.04/0.1 = 0.4 A
+    // The max expected current is around __0.05__ A (choose twice of 25mA OLED current)
+    // MinimumLSB = MaxExpected_I//32767 = 0.000_001_526 = 1.5uA
+    // MaximumLSB = MaxExpected_I//4096 = 0.000_012_207 = 12uA
+    // Choose the smallest nice one
+    // Current_LSB = 000_002 = 0.000_01 = 10uA per bit
+    // Compute the calibration register
+    // Cal = trunc (0.04096 / (Current_LSB * RSHUNT)) = 40960 = 0xA000
+    ina219_calValue = 0xA000;
+    // Compute the power LSB
+    // PowerLSB = 20 * CurrentLSB = 0.0002 (0.2 mW per bit)
+    // Compute the maximum current and shunt voltage values before overflow
+    // Max_Current = Current_LSB * 32767 = 0.32767
+    // Max_Current = 0.327 A before overflow, MAXPI = 0.4
+    //   Therefore Max_Current_Before_Overflow = Max_Current
+    // Max_ShuntVoltage = Max_Current_Before_Overflow * RSHUNT = 0.032767
+    //   Max_ShuntVoltage_Before_Overflow = Max_ShuntVoltage = 0.032
+    // Compute the Maximum Power
+    // MaximumPower = Max_Current_Before_Overflow * VBUS_MAX = 5.2W
 
-	i2cWriteStatus1 = writeSensorRegisterINA219(kWarpSensorConfigurationRegisterINA219CONFIG,
-							configBits
-							);
+    // Set multipliers to convert raw current/power values
+    ina219_currentMultiplier_uA = 10;    // Current LSB = 10uA per bit
+    ina219_powerMultiplier_uW = 200; // Power LSB = 1mW per bit (2/1)
 
-	i2cWriteStatus2 = writeSensorRegisterINA219(kWarpSensorConfigurationRegisterINA219CALIBRATION,
-							calibrationValue
-							);
+    // Set Calibration register to 'Cal' calculated above
+    status += writeRegisterINA219(INA219_REG_CALIBRATION, ina219_calValue);
 
-	return (i2cWriteStatus1 | i2cWriteStatus2);
+    // Set Config register to take into account the settings above + others
+    uint16_t config = INA219_CONFIG_BVOLTAGERANGE_16V |        // 16V Full-Scale Bus Range
+                      INA219_CONFIG_GAIN_1_40MV |              // Lowest PGA Gain
+                      INA219_CONFIG_BADCRES_12BIT |            // 12-bit bus res = 0..4097
+                      INA219_CONFIG_SADCRES_12BIT_1S_532US |   // 1 x 12-bit shunt sample
+                      INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS; // shunt and bus voltage continuous
+
+    status += writeRegisterINA219(INA219_REG_CONFIG, config);
+    
+    // wait for the registers to be properly set
+    OSA_TimeDelay(100); 
+    // give it a moment
+    // read the lines back
+    status += readRegisterINA219(INA219_REG_CALIBRATION, 2);
+    status += readRegisterINA219(INA219_REG_CONFIG, 2);
+
+    return status;
 }
 
-WarpStatus
-readSensorRegisterINA219(uint8_t deviceRegister, int numberOfBytes)
+/*!
+ *  Raw bus voltage (16-bit signed integer, so +-32767)
+ */
+uint16_t getBusVoltageRawINA219(void)
 {
-	// warpPrint("0x%02x, numbytes%d", deviceRegister, numberOfBytes);
-
-	uint8_t		cmdBuf[1];
-	i2c_status_t	status;
-
-
-	USED(numberOfBytes);
-	switch (deviceRegister)
-	{
-		case 0x01: // Shunt voltage
-		case 0x02: // Bus voltage
-		case 0x03: // Power
-		case 0x04: // Current
-		{
-			/* OK */
-			break;
-		}
-		
-		default:
-		{
-			return kWarpStatusBadDeviceCommand;
-		}
-	}
-
-	i2c_device_t slave =
-	{
-		.address = deviceINA219State.i2cAddress,
-		.baudRate_kbps = gWarpI2cBaudRateKbps
-	};
-
-	warpScaleSupplyVoltage(deviceINA219State.operatingVoltageMillivolts);
-	cmdBuf[0] = deviceRegister;
-	warpEnableI2Cpins();
-
-	status = I2C_DRV_MasterReceiveDataBlocking(
-							0 /* I2C peripheral instance */,
-							&slave,
-							cmdBuf,
-							1,
-							(uint8_t *)deviceINA219State.i2cBuffer,
-							numberOfBytes,
-							gWarpI2cTimeoutMilliseconds);
-	// warpPrint(" s=%d", status);
-	if (status != kStatus_I2C_Success)
-	{
-		return kWarpStatusDeviceCommunicationFailed;
-	}
-
-	return kWarpStatusOK;
+    uint16_t success = readRegisterINA219(INA219_REG_BUSVOLTAGE, 2);
+    // Shift to the right 3 to drop CNVR and OVF and multiply by LSB
+    uint16_t value = ina219_i2cBuffer[1] | (ina219_i2cBuffer[0] << 8); // MSB-LSB bytes
+    return (int16_t)((value >> 3) * 4); 
 }
 
-void
-printSensorDataINA219(bool hexModeFlag)
+/*!
+ *  Bus voltage in millivolts 
+ */
+uint32_t getBusVoltagemVINA219(void)
 {
-	uint16_t	readSensorRegisterValueLSB;
-	uint16_t	readSensorRegisterValueMSB;
-	int16_t		readSensorRegisterValueCombined;
-	WarpStatus	i2cReadStatus;
-
-
-	warpScaleSupplyVoltage(deviceINA219State.operatingVoltageMillivolts);
-
-	/*
-	 *	From the INA219 datasheet:
-	 *
-	 *		"A random read access to the LSB registers is not possible.
-	 *		Reading the MSB register and then the LSB register in sequence
-	 *		ensures that both bytes (LSB and MSB) belong to the same data
-	 *		sample, even if a new data sample arrives between reading the
-	 *		MSB and the LSB byte."
-	 *
-	 *	We therefore do 2-byte read transactions, for each of the registers.
-	 *	We could also improve things by doing a 6-byte read transaction.
-	 */
-
-	i2cReadStatus = readSensorRegisterINA219(kWarpSensorOutputRegisterINA219SHUNT, 2 /* numberOfBytes */);
-	readSensorRegisterValueMSB = deviceINA219State.i2cBuffer[0];
-	readSensorRegisterValueLSB = deviceINA219State.i2cBuffer[1];
-	readSensorRegisterValueCombined = ((readSensorRegisterValueMSB & 0xFF) << 8) | (readSensorRegisterValueLSB);
-
-	
-
-	if (i2cReadStatus != kWarpStatusOK)
-	{
-		warpPrint(" ----,");
-	}
-	else
-	{
-		if (hexModeFlag)
-		{
-			warpPrint(" shunt = 0x%02x 0x%02x,", readSensorRegisterValueMSB, readSensorRegisterValueLSB);
-		}
-		else
-		{
-			// warpPrint(" shunt = %d uV", readSensorRegisterValueCombined * kWarpSensorConfigConstINA219shuntLSBmV);
-			warpPrint("%d uA\n",  kWarpSensorConfigConstINA219currentLSBmA * readSensorRegisterValueCombined * kWarpSensorConfigConstINA219calibrationDefault / 4096);
-		}
-	}
+    uint16_t value = getBusVoltageRawINA219();
+    return value;
 }
 
+/*!
+ *  Raw shunt voltage (16-bit signed integer, so +-32767)
+ */
+uint16_t getShuntVoltageRawINA219(void)
+{
+    uint16_t success = readRegisterINA219(INA219_REG_SHUNTVOLTAGE, 2);
+    uint16_t value = ina219_i2cBuffer[1] | (ina219_i2cBuffer[0] << 8); // MSB-LSB bytes
+    return value;
+}
 
+/*!
+ *  Shunt voltage in uV (so +-327000uV)
+ */
+uint32_t getShuntVoltageuVINA219(void)
+{
+    uint16_t value = getShuntVoltageRawINA219();
+    return value * 10;
+}
+
+/*!
+ *  Raw current value (16-bit signed integer, so +-32767)
+ */
+uint16_t getCurrentRawINA219(void)
+{
+    uint16_t success = readRegisterINA219(INA219_REG_CURRENT, 2);
+    uint16_t value = ina219_i2cBuffer[1] | (ina219_i2cBuffer[0] << 8); // MSB-LSB bytes
+    return value;
+}
+
+/*!
+ *  Current value in uA, taking into account the config settings and current LSB
+ */
+uint32_t getCurrentuAINA219(void)
+{
+    uint32_t valueDec = getCurrentRawINA219();
+    valueDec  *= ina219_currentMultiplier_uA;
+    return valueDec;
+}
+
+/*!
+ *  Raw power value (16-bit signed integer, so +-32767)
+ */
+uint16_t getPowerRawINA219(void)
+{
+    uint16_t success = readRegisterINA219(INA219_REG_POWER, 2);
+    uint16_t value = ina219_i2cBuffer[1] | (ina219_i2cBuffer[0] << 8); // MSB-LSB bytes
+    return value;
+}
+
+/*!
+ *  Power value in uW, taking into account the config settings and current LSB
+ */
+uint32_t getPoweruWINA219(void)
+{
+    uint32_t valueDec = getPowerRawINA219();
+    valueDec *= ina219_powerMultiplier_uW;
+    return valueDec;
+}
+
+/*
+ * Milli-scale functions
+*/
+
+int getCurrentmAINA219(void)
+{
+    return getCurrentuAINA219() / 1000;
+}
+
+int getPowermWINA219(void)
+{
+    return getPoweruWINA219() / 1000;
+}
+
+void getCurrentvalues(void){
+    warpPrint("Current uA,Power uW,Shunt uV,Bus mV\n");
+    for (int i = 0; i < 1000; i++){
+        warpPrint("%d,%d,%d,%d\n", getCurrentuAINA219(), getPoweruWINA219(), getShuntVoltageuVINA219(), getBusVoltagemVINA219());
+        OSA_TimeDelay(10);
+    }
+}

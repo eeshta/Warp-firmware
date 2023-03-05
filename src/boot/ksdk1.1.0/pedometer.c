@@ -99,6 +99,7 @@ int16_t  combine_stream(int16_t x_data, int16_t y_data, int16_t z_data){
     warpPrint(" %d,", x_data);
     warpPrint(" %d,", y_data);
     warpPrint(" %d,", z_data);
+    warpPrint(" %d,", comb_data);
     warpPrint("\n");
     //SEGGER_RTT_printf(0, "%d\n", comb_data);
     
@@ -390,6 +391,7 @@ void displayBackground(uint8_t mode, uint8_t setting)
     writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
     writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
 
+   /*
    // Draw horizontal line
     writeCommand(kSSD1331CommandDRAWLINE);
     writeCommand(1);             // Col start
@@ -399,6 +401,7 @@ void displayBackground(uint8_t mode, uint8_t setting)
     writeCommand((uint8_t)(line_colour >> 16) & 0xFF);          // Line red
     writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
     writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
+    */
 }
 
 // Draw the current mode
