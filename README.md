@@ -1,3 +1,20 @@
+# Pedometer Activity Classifier
+**Name: Eeshta Suresh
+CRSID: es832 
+College: Girton College Cambridge**
+
+To access the project visit: https://github.com/eeshta/Warp-firmware
+
+## Motivation
+According to the World Obesity Federation, 51% of the world will be obese or overweight within the next 12 years. Obesity carries with it significantly higher risks for developing diabetes, hypertension, stroke, and respiratory problems. To prevent obesity, most public health guidelines recommend that adults participate in 30 minutes of moderate intensity physical activity on most days of the week. Research suggests that  pedometer readings usually serve as a motivational factor for physical activity behavior change. This is due to performance accomplishment that pedometers can facilitate. 
+
+## Project Summary
+A smart pedometer that can display the step count, measure speed, the number of calories burnt, and keep track of the user's BMI index. This device can also classify if the user is resting, walking or running. Furthermore, the device has also been optimised for low power consumption when at rest. Lastly, the device can calculate and output the confidence level (as a percentage) of the current activity classification using statistical analysis. 
+
+
+![image](doc/Pedometer.jpg)
+
+
 # Baseline firmware for the [Warp](https://github.com/physical-computation/Warp-hardware) family of hardware platforms
 This is the firmware for the [Warp hardware](https://github.com/physical-computation/Warp-hardware) and its publicly available and unpublished derivatives. This firmware also runs on the Freescale/NXP FRDM KL03 evaluation board which we use for teaching at the University of Cambridge. When running on platforms other than Warp, only the sensors available in the corresponding hardware platform are accessible.
 
@@ -37,95 +54,7 @@ The firmware builds on the Kinetis SDK. You can find more documentation on the K
 
 The firmware is designed for the Warp and Glaux hardware platforms, but will also run on the Freescale FRDM KL03 development board. In that case, the only sensor driver which is relevant is the one for the MMA8451Q. For more details about the structure of the firmware, see [src/boot/ksdk1.1.0/README.md](src/boot/ksdk1.1.0/README.md).
 
-## 4.  Interacting with the boot menu
-When the firmware boots, you will be dropped into a menu with a rich set of commands. The Warp boot menu allows you to conduct most of the experiments you will likely need without modifying the firmware:
-````
-[ *				W	a	r	p	(rev. b)			* ]
-[  				      Cambridge / Physcomplab   				  ]
-
-	Supply=0mV,	Default Target Read Register=0x00
-	I2C=200kb/s,	SPI=200kb/s,	UART=1kb/s,	I2C Pull-Up=32768
-
-	SIM->SCGC6=0x20000001		RTC->SR=0x10		RTC->TSR=0x5687132B
-	MCG_C1=0x42			MCG_C2=0x00		MCG_S=0x06
-	MCG_SC=0x00			MCG_MC=0x00		OSC_CR=0x00
-	SMC_PMPROT=0x22			SMC_PMCTRL=0x40		SCB->SCR=0x00
-	PMC_REGSC=0x00			SIM_SCGC4=0xF0000030	RTC->TPR=0xEE9
-
-	0s in RTC Handler to-date,	0 Pmgr Errors
-Select:
-- 'a': set default sensor.
-- 'b': set I2C baud rate.
-- 'c': set SPI baud rate.
-- 'd': set UART baud rate.
-- 'e': set default register address.
-- 'f': write byte to sensor.
-- 'g': set default SSSUPPLY.
-- 'h': powerdown command to all sensors.
-- 'i': set pull-up enable value.
-- 'j': repeat read reg 0x00 on sensor #3.
-- 'k': sleep until reset.
-- 'l': send repeated byte on I2C.
-- 'm': send repeated byte on SPI.
-- 'n': enable SSSUPPLY.
-- 'o': disable SSSUPPLY.
-- 'p': switch to VLPR mode.
-- 'r': switch to RUN mode.
-- 's': power up all sensors.
-- 't': dump processor state.
-- 'u': set I2C address.
-- 'x': disable SWD and spin for 10 secs.
-- 'z': dump all sensors data.
-Enter selection>
-````
-### Double echo characters
-By default on Unix, you will likely see characters you enter shown twice. To avoid this, do the following:
-- Make sure you are running `bash` (and not `csh`)
-- Execute `stty -echo` at the command line in the terminal window in which you will run the `JLinkRTTClient`.
-
-### Introduction to using the menu
-You can probe around the menu to figure out what to do. In brief, you will likely want:
-
-1. Menu item `b` to set the I2C baud rate.
-
-2. Menu item `r` to switch the processor from low-power mode (2MHz) to "run" mode (48MHz).
-
-3. Menu item `g` to set sensor supply voltage.
-
-4. Menu item `n` to turn on the voltage regulators.
-
-5. Menu item `z` to repeatedly read from all the sensors whose drivers are compiled into the build.
-
-*NOTE: In many cases, the menu expects you to type a fixed number of characters (e.g., 0000 or 0009 for zero and nine)<sup>&nbsp;<a href="#Notes">See note 1 below</a></sup>. If using the `JLinkRTTClient`, the menu interface eats your characters as you type them, and you should not hit RETURN after typing in text. On the other hand, if using `telnet` you have to hit return.*
-
-If you see repeated characters, you can set your terminal to not echo typed characters using `stty -echo`.
-
-### Example 1: Dump all registers for a single sensor
--	`b` (set the I2C baud rate to `0300` for 300 kb/s).
--	`g` (set sensor supply voltage to `3000` for 3000mV sensor supply voltage).
--	`n` (turn on the sensor supply regulators).
--	`j` (submenu for initiating a fixed number of repeated reads from a sensor):
-````
-Enter selection> j
-
-    Auto-increment from base address 0x01? ['0' | '1']> 0
-    Chunk reads per address (e.g., '1')> 1
-    Chatty? ['0' | '1']> 1
-    Inter-operation spin delay in milliseconds (e.g., '0000')> 0000
-    Repetitions per address (e.g., '0000')> 0000
-    Maximum voltage for adaptive supply (e.g., '0000')> 2500
-    Reference byte for comparisons (e.g., '3e')> 00
-````
-
-### Example 2: Stream data from all sensors
-This will perpetually stream data from the 90+ sensor dimensions at a rate of about 90-tuples per second. Use the following command sequence:
--	`b` (set the I2C baud rate to `0300` for 300 kb/s).
--	`r` (enable 48MHz "run" mode for the processor).
--	`g` (set sensor supply voltage to `3000` for 3000mV sensor supply voltage).
--	`n` (turn on the sensor supply regulators).
--	`z` (start to stream data from all sensors that can run at the chosen voltage and baud rate).
-
-## 5.  To update your fork
+## 4.  To update your fork
 From your local clone:
 
 	git remote add upstream https://github.com/physical-computation/Warp-firmware.git
