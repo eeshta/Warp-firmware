@@ -1929,14 +1929,16 @@ main(void)
                 {
                     step_count = 0;
                     cal_count = 0;
-					distance = 0;
+		    distance = 0;
                 }
                 
         
                 // Count steps
                 step_count = countSteps(step_count);
                 mode = modeSelector(mode, last_step_time);
-		
+                
+		int16_t mag_acc = combine_stream(readAxis_x(),readAxis_y(),readAxis_z());
+		uncer(mag_acc, mode);
 		/*
 		//Toggle between settings when SW2 pressed		
                 if (modegame == 0){

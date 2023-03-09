@@ -27,6 +27,9 @@
 #define RUNNING_THRESH          8               // Threshold for running mode - 8 steps in 3s = 2.66Hz
 #define REST_TIME               2500            // Enter rest mode after 5s
 
+int16_t	    mean_rest			= 9.272;
+int16_t	    mean_walk			= 90.873;
+int16_t	    mean_run			= 478.337;
 
 int16_t     diff_coeff[BUFF_LENGTH]     =   {0,0,0,1,0,-1,0,0,0};               // FIR derivative
 int16_t     lpf_coeff[BUFF_LENGTH]      =   {1,6,22,44,54,44,22,6,1};           // FIR LPF filter designed using MATLAB
@@ -102,10 +105,8 @@ int16_t  combine_stream(int16_t x_data, int16_t y_data, int16_t z_data){
     //warpPrint(" %d,", comb_data);
     //warpPrint("\n");
     
-    
     return comb_data;
 }
-
 
 // FIR Low Pass Filter
 void lpf(void){
@@ -231,7 +232,6 @@ uint32_t countSteps(uint32_t step_count){
     return step_count;
 }
 
-
 // Count calories based on speed, weight and height
 uint32_t countCals(uint32_t cal_count, uint8_t height, uint8_t weight)
 {
@@ -315,6 +315,64 @@ uint8_t modeSelector(uint8_t mode, uint32_t last_step_time)
     }
 }
 
+void uncer(int16_t mag_acc, int8_t mode) {
+	uint32_t uncertainty;
+	//REST
+	if (mag_acc <= mean_rest && mode == 0) {
+		uncertainty = round(abs((mag_acc - mean_rest))/mean_rest * 100);
+		warpPrint("Rest - 100 percent confident");
+		warpPrint("\n");
+		
+	}
+	
+	else if (mag_acc > mean_rest && mag_acc < mean_walk && mode == 0) {
+		uncertainty = round(100 - (abs((mag_acc - mean_rest))/(mean_walk - mean_rest) * 100));
+		warpPrint("Rest - %d percent confident", uncertainty);
+		warpPrint("\n");	
+	}
+	
+	else if (mag_acc > mean_walk && mode == 0) {
+		warpPrint("Rest - 0 percent confident");
+		warpPrint("\n");	
+	}
+	
+	
+	//WALK
+	else if (mean_rest < mag_acc && mag_acc <= mean_walk && mode == 1) {
+		uncertainty = round(abs((mag_acc - mean_rest))/(mean_walk - mean_rest) * 100);
+		warpPrint("Walk - %d percent confident", uncertainty);
+		warpPrint("\n");	
+	}
+	
+	else if (mean_walk < mag_acc && mag_acc < mean_run && mode == 1) {
+		uncertainty = round(100 - (abs((mag_acc - mean_walk))/(mean_run - mean_walk) * 100));
+		warpPrint("Walk - %d percent confident", uncertainty);
+		warpPrint("\n");	
+	}
+	
+	else if (mag_acc < mean_rest || mag_acc > mean_run && mode == 1) {
+		warpPrint("Walk - 0 percent confident", uncertainty);
+		warpPrint("\n");	
+	}
+	
+	
+	//RUN
+	else if (mean_walk < mag_acc && mag_acc < mean_run && mode == 2) {
+		uncertainty = round(abs((mag_acc - mean_walk))/(mean_run - mean_walk) * 100);
+		warpPrint("Running - %d percent confident", uncertainty);
+		warpPrint("\n");	
+	}	
+	else if (mag_acc  >= mean_run && mode == 2) {
+		warpPrint("Running - 100 percent confident");
+		warpPrint("\n");
+	}
+	
+		
+	else if (mag_acc < mean_rest || mag_acc < mean_walk && mode == 2) {
+		warpPrint("Running - 0 percent confident", uncertainty);
+		warpPrint("\n");	
+	}
+}
 /*
 UI for OLED
 */
