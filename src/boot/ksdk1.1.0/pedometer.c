@@ -316,60 +316,60 @@ uint8_t modeSelector(uint8_t mode, uint32_t last_step_time)
 }
 
 void uncer(int16_t mag_acc, int8_t mode) {
-	uint32_t uncertainty;
+	float uncertainty;
 	//REST
-	if (mag_acc <= mean_rest && mode == 0) {
-		uncertainty = round(abs((mag_acc - mean_rest))/mean_rest * 100);
+	if ((float)mag_acc <= 9.272 && mode == 0) {
+		uncertainty = round(abs(((float)mag_acc - 9.272))/9.272 * 100);
 		warpPrint("Rest - 100 percent confident");
 		warpPrint("\n");
 		
 	}
 	
-	else if (mag_acc > mean_rest && mag_acc < mean_walk && mode == 0) {
-		uncertainty = round(100 - (abs((mag_acc - mean_rest))/(mean_walk - mean_rest) * 100));
-		warpPrint("Rest - %d percent confident", uncertainty);
+	else if ((float)mag_acc >= 9.272 && (float)mag_acc <= 90.873 && mode == 0) {
+		uncertainty = round(100 - (abs(((float)mag_acc - 9.272))/(90.873 - 9.272) * 100));
+		warpPrint("Rest - %d percent confident", (int)uncertainty);
 		warpPrint("\n");	
 	}
 	
-	else if (mag_acc > mean_walk && mode == 0) {
+	else if ((float)mag_acc > 90.873 && mode == 0) {
 		warpPrint("Rest - 0 percent confident");
 		warpPrint("\n");	
 	}
 	
 	
 	//WALK
-	else if (mean_rest < mag_acc && mag_acc <= mean_walk && mode == 1) {
-		uncertainty = round(abs((mag_acc - mean_rest))/(mean_walk - mean_rest) * 100);
-		warpPrint("Walk - %d percent confident", uncertainty);
+	else if (9.272 <= (float)mag_acc && (float)mag_acc <= 90.873 && mode == 1) {
+		uncertainty = round(abs(((float)mag_acc - 9.272))/(90.873 - 9.272) * 100);
+		warpPrint("Walk - %d percent confident", (int)uncertainty);
 		warpPrint("\n");	
 	}
 	
-	else if (mean_walk < mag_acc && mag_acc < mean_run && mode == 1) {
-		uncertainty = round(100 - (abs((mag_acc - mean_walk))/(mean_run - mean_walk) * 100));
-		warpPrint("Walk - %d percent confident", uncertainty);
+	else if (90.873 <= (float)mag_acc && (float)mag_acc <= 478.3 && mode == 1) {
+		uncertainty = round(100 - (abs(((float)mag_acc - 90.873))/(478.3 - 90.873) * 100));
+		warpPrint("Walk - %d percent confident", (int)uncertainty);
 		warpPrint("\n");	
 	}
 	
-	else if (mag_acc < mean_rest || mag_acc > mean_run && mode == 1) {
-		warpPrint("Walk - 0 percent confident", uncertainty);
+	else if ((float)mag_acc < 9.272 || (float)mag_acc > 478.3 && mode == 1) {
+		warpPrint("Walk - 0 percent confident", (int)uncertainty);
 		warpPrint("\n");	
 	}
 	
 	
 	//RUN
-	else if (mean_walk < mag_acc && mag_acc < mean_run && mode == 2) {
-		uncertainty = round(abs((mag_acc - mean_walk))/(mean_run - mean_walk) * 100);
-		warpPrint("Running - %d percent confident", uncertainty);
+	else if (90.873 <= (float)mag_acc && (float)mag_acc <= 478.3 && mode == 2) {
+		uncertainty = round(abs(((float)mag_acc - 90.873))/(478.3 - 90.873) * 100);
+		warpPrint("Running - %d percent confident", (int)uncertainty);
 		warpPrint("\n");	
 	}	
-	else if (mag_acc  >= mean_run && mode == 2) {
+	else if ((float)mag_acc  >= 478.3 && mode == 2) {
 		warpPrint("Running - 100 percent confident");
 		warpPrint("\n");
 	}
 	
 		
-	else if (mag_acc < mean_rest || mag_acc < mean_walk && mode == 2) {
-		warpPrint("Running - 0 percent confident", uncertainty);
+	else if ((float)mag_acc < 9.272 || (float)mag_acc < 90.873 && mode == 2) {
+		warpPrint("Running - 0 percent confident", (int)uncertainty);
 		warpPrint("\n");	
 	}
 }
