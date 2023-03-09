@@ -1599,9 +1599,9 @@ main(void)
 	#endif
 
 
-	#if (WARP_BUILD_ENABLE_DEVINA219)
-		get1000Currents();
-	#endif
+	//#if (WARP_BUILD_ENABLE_DEVINA219)
+	//	getCurrentvalues();
+	//#endif
 	
 	/*
 	 *	Initialize all the sensors
@@ -1612,9 +1612,6 @@ main(void)
 		initBMX055mag(	0x10	/* i2cAddress */,	&deviceBMX055magState,		kWarpDefaultSupplyVoltageMillivoltsBMX055mag	);
 	#endif
 	
-	//#if (WARP_BUILD_ENABLE_DEVINA219)
-	//	initINA219(	0x40	/* i2cAddress */,		kWarpDefaultSupplyVoltageMillivoltsINA219	);
-	//#endif
 
 	#if (WARP_BUILD_ENABLE_DEVMMA8451Q)
 		initMMA8451Q(	0x1D	/* i2cAddress */,		kWarpDefaultSupplyVoltageMillivoltsMMA8451Q	);
@@ -1887,7 +1884,7 @@ main(void)
     uint32_t    last_step_time      = 0;            // Last step time
     uint8_t     ticks               = 0;            // Tracks seconds as measured by 50 cycles
     uint8_t	ticks3		    = 0;	    // Tracks 3 seconds 
-    int 	setting 	    = 1;	    // Toggle between different display versions (1,2,3,4)
+    int 	setting 	    = 4;	    // Toggle between different display versions (1,2,3,4)
 													
     // Initialise display information
     displayBackground(mode, setting);

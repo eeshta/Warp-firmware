@@ -96,12 +96,11 @@ int16_t  combine_stream(int16_t x_data, int16_t y_data, int16_t z_data){
     
     int16_t comb_data = (int16_t)sqrt(x_data*x_data + y_data*y_data + z_data*z_data);
     
-    warpPrint(" %d,", x_data);
-    warpPrint(" %d,", y_data);
-    warpPrint(" %d,", z_data);
-    warpPrint(" %d,", comb_data);
-    warpPrint("\n");
-    //SEGGER_RTT_printf(0, "%d\n", comb_data);
+    //warpPrint(" %d,", x_data);
+    //warpPrint(" %d,", y_data);
+    //warpPrint(" %d,", z_data);
+    //warpPrint(" %d,", comb_data);
+    //warpPrint("\n");
     
     
     return comb_data;
@@ -237,7 +236,7 @@ uint32_t countSteps(uint32_t step_count){
 uint32_t countCals(uint32_t cal_count, uint8_t height, uint8_t weight)
 {
     
-    // Uses equations outlined in 'Full-Featured Pedometer Design Realized with 3-Axis Digital Accelerometer' - Neil Zhao
+    // Uses equations outlined in 'Full-Featured Pedometer Design Realized with 3-Axis Digital Accelerometer' - Neil Zhao Published Paper
     
     uint8_t cals;
     uint8_t speed;
@@ -317,7 +316,7 @@ uint8_t modeSelector(uint8_t mode, uint32_t last_step_time)
 }
 
 /*
-UI and UX for OLED borrowed from Adam Goldney https://github.com/adamgoldney/Warp-Pedometer
+UI for OLED
 */
 
 // Draw the background
