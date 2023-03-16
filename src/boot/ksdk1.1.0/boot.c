@@ -1602,9 +1602,9 @@ main(void)
 		Uncomment to get current readings
 	*/
 	
-	#if (WARP_BUILD_ENABLE_DEVINA219)
-		getCurrentvalues();
-	#endif
+	//#if (WARP_BUILD_ENABLE_DEVINA219)
+	//	getCurrentvalues();
+	//#endif
 	
 	/*
 	 *	Initialize all the sensors
@@ -1941,16 +1941,7 @@ main(void)
                 mode = modeSelector(mode, last_step_time);
                 //warpPrint("\r\tPMC_REGSC=0x%02x\t\t\tSIM_SCGC4=0x%02x\tRTC->TPR=0x%02x\n\n", PMC_REGSC, SIM_SCGC4, RTC->TPR);
 		int16_t mag_acc = combine_stream(readAxis_x(),readAxis_y(),readAxis_z());
-		//uncer(mag_acc, mode);
-		
-		/*
-		//Toggle between settings when SW2 pressed		
-                if (modegame == 0){
-                	clearScreen();
-                	//fillscreen(0x98, 0xFB, 0x98);	
-				
-    		}
-    		*/
+		uncer(mag_acc, mode);
     		
                 if (setting == 4){
                 	drawBMI(bmi, mode);

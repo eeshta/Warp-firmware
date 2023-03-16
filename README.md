@@ -11,6 +11,7 @@ According to the World Obesity Federation, 51% of the world will be obese or ove
 ## Project Summary
 A smart pedometer that can display the step count, measure speed, the number of calories burnt, and keep track of the user's BMI index. This device can also classify if the user is resting, walking or running. Furthermore, the device has also been optimised for low power consumption when at rest. Lastly, the device can calculate and output the confidence level (as a percentage) of the current activity classification using statistical analysis. 
 
+In order to get a accurate value for step count, the x,y and z axis accelerometer data is first stored in a data buffer. This is passed through a low pass FIR filter, followed by differentiation. If the steps in buffer is greater than the running threshold (=8), then the user is running. If there is no steps in the the buffer in a given time frame, the user is at rest. ELse, the user is walking.  Finally, checks are carried out by the function to ensure that there are no steps in the last buffer period. Finally, statistics is used determine if it corresponds to actual walking, running or noise. 
 
 ![image](doc/Pedometer.jpg)
 
@@ -93,7 +94,7 @@ The MMA8451Q built in to the KL03 evaluation board is used to record acceleratio
 ## Source File Descriptions
 The main is in `src/boot/ksdk1.1.0/boot.c`. Functions for the step counting, BMI index, calorie monitor, distance and speed measurement functions are contained within `src/boot/ksdk1.1.0/pedometer.c`. The drivers for the display are in `src/boot/ksdk1.1.0/devSSD1331.c` and for the MMA8541Q in `src/boot/ksdk1.1.0/devMMA8451Q.c`. 
 
-The section below briefly describes all the relevant source files in the `src/boot/ksdk1.1.0/` directory. In order to toggle between the different display modes, change the setting parameter in line 1877 of `src/boot/ksdk1.1.0/boot.c` to 1 (Calories), 2 (Distance), 3 (Speed) or 4 (BMI).
+The section below briefly describes all the relevant source files in the `src/boot/ksdk1.1.0/` directory. In order to toggle between the different display modes, change the setting parameter in line 1890 of `src/boot/ksdk1.1.0/boot.c` to 1 (Calories), 2 (Distance), 3 (Speed) or 4 (BMI).
 
 ##### `CMakeLists-Warp.txt`
 This is the CMake configuration file. Edit this to change the default size of the stack and heap.
