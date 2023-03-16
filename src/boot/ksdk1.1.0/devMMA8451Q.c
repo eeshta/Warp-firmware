@@ -1,5 +1,6 @@
 /*
-	Authored 2016-2021. Phillip Stanley-Marbell.
+	Authored 2016-2018. Phillip Stanley-Marbell. Additional contributors,
+	2018-onwards, see git log.
 	
 	Additional contributions, 2018: Jan Heck, Chatura Samarakoon, Youchao Wang, Sam Willis.
 	All rights reserved.

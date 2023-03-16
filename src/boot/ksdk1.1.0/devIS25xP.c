@@ -1,5 +1,5 @@
 /*
-	Authored 2016-2018. Phillip Stanley-Marbell.
+	Authored 2020-2022. Phillip Stanley-Marbell, Orestis Kaparounakis.
 
 	All rights reserved.
 

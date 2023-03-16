@@ -61,6 +61,78 @@ From your local clone:
 	git fetch upstream
 	git pull upstream master
 
+
+### 5. Pin configuration
+Pin configuration from FRDM KL03 to SSD1331 OLED display. 
+```
+BOARD		DISPLAY
+5V-5	->	VCC
+GND-7   ->	GND
+PTA8	->	MOSI
+PTA9	->	SCK
+PTB11	->	OC
+PTA12	->	DC
+PTB0	->	R
+
+```
+
+Pin configuration from INA219 to display. 
+```
+INA219		DISPLAY/BOARD
+VCC	->	5V-5	 
+GND   	->	GND-7	 
+SCL	->	PTB3	  
+SDA	->	PTB4
+VIN-	->	+
+VIN+	->	5V-5
+
+```
+
+The MMA8451Q built in to the KL03 evaluation board is used to record accelerations and is interfaced by i2c.
+
+## Source File Descriptions
+The main is in `src/boot/ksdk1.1.0/boot.c`. Functions for the step counting, BMI index, calorie monitor, distance and speed measurement functions are contained within `src/boot/ksdk1.1.0/pedometer.c`. The drivers for the display are in `src/boot/ksdk1.1.0/devSSD1331.c` and for the MMA8541Q in `src/boot/ksdk1.1.0/devMMA8451Q.c`. 
+
+The section below briefly describes all the relevant source files in the `src/boot/ksdk1.1.0/` directory. In order to toggle between the different display modes, change the setting parameter in line 1877 of `src/boot/ksdk1.1.0/boot.c` to 1 (Calories), 2 (Distance), 3 (Speed) or 4 (BMI).
+
+##### `CMakeLists-Warp.txt`
+This is the CMake configuration file. Edit this to change the default size of the stack and heap.
+
+##### `SEGGER_RTT.*`
+This is the implementation of the SEGGER Real-Time Terminal interface. Do not modify.
+
+##### `SEGGER_RTT_Conf.h`
+Configuration file for SEGGER Real-Time Terminal interface. You can increase the size of `BUFFER_SIZE_UP` to reduce text in the menu being trimmed.
+
+##### `SEGGER_RTT_printf.c`
+Implementation of the SEGGER Real-Time Terminal interface formatted I/O routines. Do not modify.
+
+##### `devSSD1331.*`
+Driver for the SSD1331 OLED display.
+
+##### `devMMA8451Q.*`
+Driver for the MMA8451Q 3-axis accelerometer sensor.
+
+##### `gpio_pins.c`
+Definition of I/O pin configurations using the KSDK `gpio_output_pin_user_config_t` structure.
+
+##### `gpio_pins.h`
+Definition of I/O pin mappings and aliases for different I/O pins to symbolic names relevant to the Warp hardware design, via `GPIO_MAKE_PIN()`.
+
+##### `startup_MKL03Z4.S`
+Initialization assembler.
+
+##### `boot.c`
+Main program including initialisation and while loops which runs the program continously. The while loop runs automatically on start-up after initialisation.
+
+##### `pedometer.c`
+Implementation of functions used by pedometer that is called inside the main loop. It containes functions to calculate step counts, distance, speed, BMI and current activity mode.
+
+##### `pedometer.h`
+Constant and data structure definitions for pedometer.c
+
+##### `warp.h`
+Constant and data structure definitions.
 ----
 
 ### If you use Warp in your research, please cite it as:
