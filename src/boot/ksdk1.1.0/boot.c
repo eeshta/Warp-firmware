@@ -1584,6 +1584,11 @@ main(void)
 	lowPowerPinStates();
 	warpPrint("done.\n");
 	
+	/*
+		Uncomment to get current readings
+	*/
+	
+	/*
 	#if (WARP_BUILD_ENABLE_DEVINA219)
 		warpPrint("About to configure INA219...\n");
 		if (!initINA219()){
@@ -1598,13 +1603,13 @@ main(void)
 		}		
 	#endif
 
-	/*
-		Uncomment to get current readings
-	*/
+
 	
-	//#if (WARP_BUILD_ENABLE_DEVINA219)
-	//	getCurrentvalues();
-	//#endif
+	#if (WARP_BUILD_ENABLE_DEVINA219)
+		getCurrentvalues();
+	#endif
+	
+	*/
 	
 	/*
 	 *	Initialize all the sensors
@@ -1887,7 +1892,7 @@ main(void)
     uint32_t    last_step_time      = 0;            // Last step time
     uint8_t     ticks               = 0;            // Tracks seconds as measured by 50 cycles
     uint8_t	ticks3		    = 0;	    // Tracks 3 seconds 
-    int 	setting 	    = 4;	    // Toggle between different display versions (1,2,3,4)
+    int 	setting 	    = 2;	    // Toggle between different display versions (1,2,3,4)
 													
     // Initialise display information
     displayBackground(mode, setting);
@@ -1940,8 +1945,8 @@ main(void)
                 step_count = countSteps(step_count);
                 mode = modeSelector(mode, last_step_time);
                 //warpPrint("\r\tPMC_REGSC=0x%02x\t\t\tSIM_SCGC4=0x%02x\tRTC->TPR=0x%02x\n\n", PMC_REGSC, SIM_SCGC4, RTC->TPR);
-		int16_t mag_acc = combine_stream(readAxis_x(),readAxis_y(),readAxis_z());
-		uncer(mag_acc, mode);
+		//int16_t mag_acc = combine_stream(readAxis_x(),readAxis_y(),readAxis_z());
+		//uncer(mag_acc, mode);
     		
                 if (setting == 4){
                 	drawBMI(bmi, mode);

@@ -27,10 +27,6 @@
 #define RUNNING_THRESH          8               // Threshold for running mode - 8 steps in 3s = 2.66Hz
 #define REST_TIME               2500            // Enter rest mode after 5s
 
-int16_t	    mean_rest			= 9.272;
-int16_t	    mean_walk			= 90.873;
-int16_t	    mean_run			= 478.337;
-
 int16_t     diff_coeff[BUFF_LENGTH]     =   {0,0,0,1,0,-1,0,0,0};               // FIR derivative
 int16_t     lpf_coeff[BUFF_LENGTH]      =   {1,6,22,44,54,44,22,6,1};           // FIR LPF filter designed using MATLAB
 
@@ -448,17 +444,7 @@ void displayBackground(uint8_t mode, uint8_t setting)
     writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
     writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
 
-   /*
-   // Draw horizontal line
-    writeCommand(kSSD1331CommandDRAWLINE);
-    writeCommand(1);             // Col start
-    writeCommand(63-20);         // Row start
-    writeCommand(96);            // Col end
-    writeCommand(63-20);         // Row end
-    writeCommand((uint8_t)(line_colour >> 16) & 0xFF);          // Line red
-    writeCommand((uint8_t)(line_colour >> 8) & 0xFF);           // Line green
-    writeCommand((uint8_t)line_colour & 0xFF);                  // Line blue
-    */
+
 }
 
 // Draw the current mode
