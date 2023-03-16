@@ -1598,10 +1598,13 @@ main(void)
 		}		
 	#endif
 
-
-	//#if (WARP_BUILD_ENABLE_DEVINA219)
-	//	getCurrentvalues();
-	//#endif
+	/*
+		Uncomment to get current readings
+	*/
+	
+	#if (WARP_BUILD_ENABLE_DEVINA219)
+		getCurrentvalues();
+	#endif
 	
 	/*
 	 *	Initialize all the sensors
@@ -1861,8 +1864,8 @@ main(void)
 	#endif
 
     devSSD1331init();
-
-
+    //warpPrint("\r\tPMC_REGSC=0x%02x\t\t\tSIM_SCGC4=0x%02x\tRTC->TPR=0x%02x\n\n", PMC_REGSC, SIM_SCGC4, RTC->TPR);
+    
     // Configure accelerometer sensor - set high pass filter to remove gravity offset
     configureSensorMMA8451Q(0x00,/* Payload: Disable FIFO */
                             0x00,/* Normal read 14bit, 800Hz, normal, standby mode to write HP */
@@ -1936,9 +1939,10 @@ main(void)
                 // Count steps
                 step_count = countSteps(step_count);
                 mode = modeSelector(mode, last_step_time);
-                
+                //warpPrint("\r\tPMC_REGSC=0x%02x\t\t\tSIM_SCGC4=0x%02x\tRTC->TPR=0x%02x\n\n", PMC_REGSC, SIM_SCGC4, RTC->TPR);
 		int16_t mag_acc = combine_stream(readAxis_x(),readAxis_y(),readAxis_z());
-		uncer(mag_acc, mode);
+		//uncer(mag_acc, mode);
+		
 		/*
 		//Toggle between settings when SW2 pressed		
                 if (modegame == 0){

@@ -112,3 +112,10 @@ Implements functionality related to enabling the different low-power modes of th
 
 ##### `warp.h`
 Constant and data structure definitions.
+
+##### `pedometer.c`
+Implementation of functions used by pedometer. Such as step counter and activity threshold functions
+
+##### `pedometer.h`
+Constant and data structure definitions for pedometer.c
+
