@@ -12,6 +12,7 @@ According to the World Obesity Federation, 51% of the world will be obese or ove
 A smart pedometer that can display the step count, measure speed, the number of calories burnt, and keep track of the user's BMI index. This device can also classify if the user is resting, walking or running. Furthermore, the device has also been optimised for low power consumption when at rest. Lastly, the device can calculate and output the confidence level (as a percentage) of the current activity classification using statistical analysis. 
 
 In order to get a accurate value for step count, the x,y and z axis accelerometer data is first stored in a data buffer. This is passed through a low pass FIR filter, followed by differentiation. If the steps in buffer is greater than the running threshold (=8), then the user is running. If there is no steps in the the buffer in a given time frame, the user is at rest. ELse, the user is walking.  Finally, checks are carried out by the function to ensure that there are no steps in the last buffer period. Finally, statistics is used determine if it corresponds to actual walking, running or noise. 
+![image](doc/flowchart.png)
 
 ![image](doc/Pedometer.jpg)
 
